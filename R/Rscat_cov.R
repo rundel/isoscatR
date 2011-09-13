@@ -1,17 +1,17 @@
-emp_variog = function(geneofile, locfile,transform) {
+emp_variog = function(genofile, locfile,transform) {
     
     if (missing(transform))
         transform = function(x) x
     
     locdata = read_location_file(locfile)
-    geneodata = read_geneotype_file(geneofile, nrow(locdata))
+    genodata = read_genotype_file(genofile, nrow(locdata))
     
     locs = as.matrix(locdata[,c(5,6)])
     locnames = locdata[,1]
     
-    geneo = as.matrix( geneodata[[1]] )
-    nAllele = geneodata[[2]]
-    indivID = geneodata[[3]]
+    geno = as.matrix( genodata[[1]] )
+    nAllele = genodata[[2]]
+    indivID = genodata[[3]]
     
 
     res = list()
@@ -20,12 +20,12 @@ emp_variog = function(geneofile, locfile,transform) {
         res[[i]] = matrix(0, nrow=length(locnames), ncol=nAllele[i])
         
         for(j in 1:length(locnames)) {
-            row_sub = geneo[,1]==j
+            row_sub = geno[,1]==j
             for(k in which(row_sub)) {
-                if (geneo[k,i+1] != -999)
-                    res[[i]][j,geneo[k,i+1]+1] = res[[i]][j,geneo[k,i+1]+1]+1
+                if (geno[k,i+1] != -999)
+                    res[[i]][j,geno[k,i+1]+1] = res[[i]][j,geno[k,i+1]+1]+1
             }
-            res[[i]][j,] = transform( res[[i]][j,] / (sum(geneo[row_sub,i+1] != -999)) )
+            res[[i]][j,] = transform( res[[i]][j,] / (sum(geno[row_sub,i+1] != -999)) )
         }
     }
     

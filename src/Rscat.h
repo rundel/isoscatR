@@ -23,7 +23,7 @@ struct GlobalParams {
     
     Rcpp::IntegerVector         nAlleles;
     
-    arma::imat                  geneotypes;
+    arma::imat                  genotypes;
     Rcpp::IntegerVector         cvIndivs;
     arma::imat                  cvGeneotypes;
     

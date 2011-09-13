@@ -39,15 +39,15 @@ SEXP mcmc_main(SEXP rChain,
     IntegerMatrix tG(rGeneotypes);  
     NumericMatrix tB(rBoundary);
     NumericMatrix tL(rLocations);
-    p.geneotypes = imat(tG.begin(),tG.nrow(),tG.ncol(),false);
+    p.genotypes = imat(tG.begin(),tG.nrow(),tG.ncol(),false);
     p.boundary = mat(tB.begin(),tB.nrow(),tB.ncol(),false);
     p.locs = mat(tL.begin(),tL.nrow(),tL.ncol(),false);
     
     
     p.nAlleles = IntegerVector(rNalleles);
     p.nRegions = p.locs.n_rows;
-    p.nLoci = p.geneotypes.n_cols;
-    p.nInd = p.geneotypes.n_rows/2;
+    p.nLoci = p.genotypes.n_cols;
+    p.nInd = p.genotypes.n_rows/2;
     
     init_params(p,opt);
     

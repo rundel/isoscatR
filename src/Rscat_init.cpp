@@ -21,7 +21,7 @@ void calc_counts(GlobalParams &p, GlobalOptions &opt) {
             int region = p.indRegion[i];
             
             for(int j=0; j<2; j++) {
-                int allele = p.geneotypes(2*i+j,l);
+                int allele = p.genotypes(2*i+j,l);
                 
                 if (allele >= 0)
                     p.count[l](region,allele)++;

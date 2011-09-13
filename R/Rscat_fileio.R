@@ -38,7 +38,7 @@ read_location_file = function(file,sep="\t") {
 }
 
 
-read_geneotype_file = function(file, sep="\t") {
+read_genotype_file = function(file, sep="\t", allele_lookup = NULL) {
     
     data = read.table(file,sep=sep,stringsAsFactors=FALSE)
     odd_rows = seq(1,nrow(data),2) 
@@ -47,25 +47,41 @@ read_geneotype_file = function(file, sep="\t") {
     stopifnot(all(data[odd_rows,1] == data[-odd_rows,1]))
     stopifnot(all(data[odd_rows,2] == data[-odd_rows,2]))
     
+    if (!is.null(allele_lookup)) {
+        stopifnot(length(allele_lookup) == ncol(data)-2)
+    } else {
+        allele_lookup = list()
+    }
+     
     
     nAlleles = rep(NA,ncol(data)-2)
     
-    allele_lookup = list()
-    for (i in 3:ncol(data)) {
-        unq = sort(unique( data[ data[,i] > 0, i] ))
-        nAlleles[i-2] = length(unq)
+    alleles = as.matrix(data[,-(1:2)])
+    for (i in 1:ncol(alleles)) {
         
-        recoded = sapply(data[ data[,i] > 0, i], function(x) which(x==unq))-1 #so indexes start from 0
-        data[ data[,i] > 0, i] = recoded
+        row_sub = alleles[,i] > 0
         
-        allele_lookup[[i-2]] = unq
+        if (length(allele_lookup) >= i) {
+            unq = allele_lookup[[i]]
+        } else {
+            unq = sort(unique( alleles[row_sub, i] ))
+        }
+        
+        
+        nAlleles[i] = length(unique( alleles[row_sub, i] ))
+        allele_lookup[[i]] = unq
+        
+        if (sum(row_sub) == 0) next
+        
+        alleles[row_sub, i] = sapply(alleles[row_sub, i], function(x) {
+                                                            z=which(x==unq)-1 #so indexes start from 0
+                                                            if(length(z)==0) z=-1
+                                                            return(z)
+                                                          })
     }
     
-    odd_rows = seq(1,nrow(data),2)
     indivID = data[odd_rows,1]
     indivlocs = data[odd_rows,2]
-    
-    alleles = as.matrix(data[,-(1:2)])
-    
+
     return(list(alleles, indivlocs, nAlleles, indivID, allele_lookup))
 }
