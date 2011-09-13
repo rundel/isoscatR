@@ -1,0 +1,13 @@
+Package: Rscat
+Type: Package
+Title: What the package does (short line)
+Version: 1.0
+Date: 2010-10-02
+Author: Who wrote it
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+LazyLoad: yes
+Depends: Rcpp (>= 0.8.6), RcppArmadillo (>= 0.2.7), coda, doMC, rgeos
+LinkingTo: Rcpp, RcppArmadillo
+SystemRequirements: GNU make
