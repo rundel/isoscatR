@@ -2,7 +2,7 @@ MCMC_Chains <- function(genofile, locfile, boundfile, options=list(),
                         nChains=2, nIter=1000, nThin=50, nBurn=500, adjbound=TRUE, 
                         cv_indivs=c(), cv_locs=c()) {
     
-    res = foreach(i = 1:nChains) %do% {
+    res = foreach(i = 1:nChains) %dopar% {
         
         options["FILESUFFIX"] = paste("_",i,sep="")
         
