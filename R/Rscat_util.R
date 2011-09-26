@@ -18,6 +18,35 @@ adjust_boundary = function(bound, locs, perc=0.2) {
      
 }
 
+calc_step = function(locs) {
+    
+    if (min(locs) > -2*pi & max(locs) < 2*pi)
+        locs=locs*180/pi
+    
+    step = min(dist(locs))
+    
+    if (step < 1)
+        step = 1/round(1/step,0)
+        
+    return(step)
+}
+
+create_raster = function(locs,step) {
+    
+    if (min(locs) > -2*pi & max(locs) < 2*pi)
+        locs=locs*180/pi
+    
+    xr = range(locs[,1]) + c(-1,1)*step/2
+    yr = range(locs[,2]) + c(-1,1)*step/2
+    
+    nr = (yr[2]-yr[1])/step
+    nc = (xr[2]-xr[1])/step
+    
+    r = raster(nrow=nr,ncol=nc,xmn=xr[1], xmx=xr[2], ymn=yr[1], ymx=yr[2])
+        
+    return( r )
+}
+
 read_allelefile = function(file, nr, nc, byrow=FALSE) {
     
     stopifnot(!missing(file))
