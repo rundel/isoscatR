@@ -4,7 +4,7 @@ using namespace arma;
 using namespace Rcpp;
 using namespace std;
 
-SEXP read_allelefile(SEXP Rfile) {
+SEXP read_allele_file(SEXP Rfile) {
     
     string file_name = as<string>(Rfile);
     

@@ -223,7 +223,7 @@ RcppExport SEXP R_cov_matern( SEXP rsigma2, SEXP rphi, SEXP rnu, SEXP rnugget, S
 
 
 // utility functions
-RcppExport SEXP read_allelefile(SEXP Rfile);
+RcppExport SEXP read_allele_file(SEXP Rfile);
 RcppExport SEXP R_calc_distance(SEXP x, SEXP y);
 RcppExport SEXP R_calc_distance_to_point(SEXP px, SEXP py, SEXP x, SEXP y);
 RcppExport SEXP prec_sum(SEXP Rvec);
