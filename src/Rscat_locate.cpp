@@ -57,14 +57,12 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     }
     pred_locs = pred_locs(span(0,i-1), span::all); 
     
-    cout << endl;
-    cout << "Estimated # grid cells: " << nx_step*ny_step << endl;
-    cout << "Actual # grid cells: " << i-1 << endl;
-    cout << "Using step=" << step << endl;
-    cout << endl;
-    
-    
-    
+    if (opt.VERBOSE) {
+        cout << "Estimated # grid cells: " << nx_step*ny_step << endl;
+        cout << "Actual # grid cells: " << i-1 << endl;
+        cout << "Using step=" << step << endl;
+        cout << endl;
+    }
     
     mat rand_pred_locs = shuffle(pred_locs,0);
     mat all_locs = join_cols(p.locs, rand_pred_locs);
@@ -72,13 +70,19 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     p.predDist = calc_distance_mat(all_locs);
     
     stringstream ss;
-    ss << opt.TMPDIR << "/pred_coords";
-    if (opt.CROSSVALIDATE)
-        ss << p.cvIndivs[0] << opt.FILESUFFIX;
-    ss << ".mat";
-
-    rand_pred_locs.save(ss.str(),raw_ascii);
     
+    if (opt.CROSSVALIDATE) {
+        ss << opt.TMPDIR << "/pred_coords"
+           << p.cvIndivs[0] << opt.FILESUFFIX
+           << ".mat";
+        
+        rand_pred_locs.save(ss.str(),raw_ascii);
+    } else if (opt.LOCATE && p.chain_num == 1) {
+        ss << opt.TMPDIR << "/pred_coords÷/.mat";
+
+        rand_pred_locs.save(ss.str(),raw_ascii);
+    }
+        
 }
 
 void update_Location(GlobalParams &p, GlobalOptions &opt) {
