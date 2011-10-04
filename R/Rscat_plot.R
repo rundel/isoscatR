@@ -1,45 +1,29 @@
-plot_allele_freq = function(allele_file, sep="", loci = NULL, return_af = FALSE) {
-    data = read.table(allele_file,sep=sep,stringsAsFactors=FALSE)
+plot_allele_freq = function(allele_file, sep="", loci = NULL, return_af = FALSE, cols = rainbow(length(locs))) {
     
-    n_loci = ncol(data)-2
+    data = read.table(allele_file,sep=sep,stringsAsFactors=FALSE)
     
     locs = unique(data[,2])
     
+    n_loci = ncol(data)-2
     if (is.null(loci)) {
         loci = 1:n_loci
     }
     
     stopifnot(all(loci %in% 1:n_loci))
     
-    alleles = data[,loci+2]
-    
-    cols = rainbow(length(locs))
+    res = calc_allele_freq(allele_file, sep)
     
     nc = round(sqrt(n_loci),0)
     nr = round(n_loci/nc,0)
     
-    res = list()
-    
     par(mfrow=c(nr,nc))
     for(l in loci) {
-        vals = alleles[,l]
-        u = sort(unique(vals[vals!=-999]))
-
-        allele_names =  as.character(u)
-        
-        res[[l]] = matrix(NA,nrow=length(u),ncol=length(locs))
-        rownames(res[[l]]) = u
-        colnames(res[[l]]) = paste("Loc",locs)
+        n = nrow(res[[l]])
         
         
-        plot(c(1,length(u)),0:1,type='n',xlab="",ylab="Allele Freq",main=paste("Locus",l))
+        plot(c(1,n),c(0,1),type='n',xlab="",ylab="Allele Freq",main=paste("Locus",l))
         for(loc in locs) {
-            sub = data[,2] == loc
-            
-            af = sapply(u, function(x) sum(vals[sub]==x)/sum(vals[sub]!=-999))
-            
-            lines(1:length(u), af, col = cols[which(loc == locs)])
-            res[[l]][,loc] = af
+            lines(1:n, res[[l]][,loc], col = cols[which(loc == locs)])
         }
         legend("topright", paste("Loc", locs),col=cols,lty=1,ncol=4,lwd=1,cex=1/2)
     }
@@ -49,7 +33,7 @@ plot_allele_freq = function(allele_file, sep="", loci = NULL, return_af = FALSE)
 }
 
 
-generate_reports = function(m, dir="./", prefix = "data", suffix = "", pts = 1000, ac.lag = 500, trace=TRUE, autocorr=TRUE, cov=TRUE, cov_func=calc_cov_powered_exp) {
+generate_reports = function(m, dir="./", prefix = "", pts = 1000, ac.lag = 500, trace=TRUE, autocorr=TRUE, cov=TRUE, cov_func=calc_cov_powered_exp) {
     
     if (inherits(m,"mcmc.list"))
         m = list(m)
@@ -60,7 +44,7 @@ generate_reports = function(m, dir="./", prefix = "data", suffix = "", pts = 100
     w=lapply(m, function(x) window(x,thin=thin))
 
     if (trace) {
-        file = paste(prefix,"_mcmc",suffix,".pdf",sep="")
+        file = paste(prefix,"mcmc_chains.pdf",sep="")
         pdf( file.path(dir,file) )
         for(i in 1:length(m)) {
             plot_mcmc(w[[i]],)
@@ -69,7 +53,7 @@ generate_reports = function(m, dir="./", prefix = "data", suffix = "", pts = 100
     }
 
     if (autocorr) {
-        file = paste(prefix,"_autocorr",suffix,".pdf",sep="")
+        file = paste(prefix,"mcmc_autocorr.pdf",sep="")
         pdf( file.path(dir,file))
         for(i in 1:length(m)) {
             for(j in 1:length(w[[i]])) 
@@ -79,7 +63,7 @@ generate_reports = function(m, dir="./", prefix = "data", suffix = "", pts = 100
     }
 
     if (cov) {
-        file = paste(prefix,"_cov",suffix,".pdf",sep="")
+        file = paste(prefix,"mcmc_model_cov.pdf",sep="")
         pdf( file.path(dir,file))
         plot_cov(w[[1]],seq(0,2000,5), cov_func)
         plot_cov(w[[1]],seq(0,2000,5), cov_func,variog=TRUE)
