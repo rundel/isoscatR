@@ -1,15 +1,30 @@
+normalize_raster = function(rast) {
+    rast[] = rast[] / sum(rast[], na.rm=TRUE)
+    return(rast)
+}
 
-allele_raster_from_file = function(root, ind, chain, type="ind") {
+allele_raster_from_file = function(root, ind = NULL, chain = 1) {
     
-    stopifnot(type %in% c("ind","loc"))
+    if (is.null(ind))
+        ind=".*"
     
     d = dir(root, "Loc",full.names=TRUE)
-    if (length(d) != 0)
+    if (length(d) != 0) {
         file = dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""),full.names=TRUE)
-    else 
-        file = dir(file.path(root,paste("Ind",ind,sep="")), pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE)
+    } else {
+        d = dir(root,paste("Ind",ind,sep=""),full.names=TRUE)
+        file = dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE)
+    }
     
-    stopifnot(length(file)==1)
+    if (length(file) == 0) {
+        stop("Error unable to locate allele file in: ", paste(head(d),collapse=" "), " ...")
+    }    
+    if (length(file) != 1) {
+        if (ind == ".*")
+            file = file[1]
+        else
+            stop("Error multiple allele files found: ",file)
+    }
     
     file_dir = dirname(file)
     pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]+_",chain,".mat",sep=""), full.names=TRUE)
