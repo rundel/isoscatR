@@ -25,7 +25,7 @@ struct GlobalParams {
     
     arma::imat                  genotypes;
     Rcpp::IntegerVector         cvIndivs;
-    arma::imat                  cvGeneotypes;
+    arma::imat                  cvGenotypes;
     
     Rcpp::IntegerVector         indRegion;
     
@@ -176,7 +176,7 @@ void init_locate(GlobalParams &p, GlobalOptions &opt);
 
 // init functions
 void parseArgs(GlobalParams &p, SEXP rBoundary, SEXP rLocations, SEXP rRegionNames,
-                                SEXP rGeneotypes, SEXP rIndivID, SEXP rNalleles);
+                                SEXP rGenotypes, SEXP rIndivID, SEXP rNalleles);
 void init_params(GlobalParams &p, GlobalOptions &opt);
 void init_proposal_sd(GlobalParams &p, GlobalOptions &opt);
 void init_attempts(GlobalParams &p);
@@ -257,14 +257,14 @@ int isInsideBoundary( double x, double y, arma::mat boundary);
 RcppExport SEXP mcmc_main(SEXP rChain,
               SEXP rBoundary,   // px2 matrix
               SEXP rLocations,  // Rx2 matrix
-              SEXP rGeneotypes, // 2Ix(L+1) matrix
+              SEXP rGenotypes, // 2Ix(L+1) matrix
               SEXP rIndRegion,
               SEXP rNalleles,
               SEXP rNiter,
               SEXP rNthin,
               SEXP rNburn,
               SEXP rCVIndivs,
-              SEXP rCVGeneotypes,
+              SEXP rCVGenotypes,
               SEXP rOpt );
 
 

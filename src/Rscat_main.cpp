@@ -10,14 +10,14 @@ using namespace std;
 SEXP mcmc_main(SEXP rChain,
               SEXP rBoundary,   // px2 matrix
               SEXP rLocations,  // Rx2 matrix
-              SEXP rGeneotypes, // 2Ix(L+1) matrix
+              SEXP rGenotypes, // 2Ix(L+1) matrix
               SEXP rIndRegion,
               SEXP rNalleles,
               SEXP rNiter,
               SEXP rNthin,
               SEXP rNburn,
               SEXP rCVIndivs,
-              SEXP rCVGeneotypes,
+              SEXP rCVGenotypes,
               SEXP rOpt ) {
     
     RNGScope scope;
@@ -36,7 +36,7 @@ SEXP mcmc_main(SEXP rChain,
     p.indRegion = IntegerVector(rIndRegion);
     
     
-    IntegerMatrix tG(rGeneotypes);  
+    IntegerMatrix tG(rGenotypes);  
     NumericMatrix tB(rBoundary);
     NumericMatrix tL(rLocations);
     p.genotypes = imat(tG.begin(),tG.nrow(),tG.ncol(),false);
@@ -65,8 +65,8 @@ SEXP mcmc_main(SEXP rChain,
     if (opt.CROSSVALIDATE) {
         p.cvIndivs = IntegerVector(rCVIndivs);
         
-        IntegerMatrix tCVG(rCVGeneotypes);  
-        p.cvGeneotypes = imat(tCVG.begin(),tCVG.nrow(),tCVG.ncol(),false);
+        IntegerMatrix tCVG(rCVGenotypes);  
+        p.cvGenotypes = imat(tCVG.begin(),tCVG.nrow(),tCVG.ncol(),false);
         
         
         init_locate(p, opt);

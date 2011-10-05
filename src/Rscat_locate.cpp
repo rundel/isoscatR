@@ -132,8 +132,8 @@ void update_LocationCV(GlobalParams &p, GlobalOptions &opt) {
         mat alleleProb = (1-opt.DELTA) * calc_f( res ) + opt.DELTA/p.nAlleles[l];
         
         for(int i=0; i < nCVInd; i++) {
-            int al1 = p.cvGeneotypes(2*i  , l);
-            int al2 = p.cvGeneotypes(2*i+1, l);
+            int al1 = p.cvGenotypes(2*i  , l);
+            int al2 = p.cvGenotypes(2*i+1, l);
 
             vec newP1,newP2;
 
