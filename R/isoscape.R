@@ -45,9 +45,15 @@ plot_feather_model = function(data, poly_order=1, cv_ind=NULL) {
         abline(lm.res)
 }
 
-calc_feather_map = function(ind, feather.data, poly_order=1, plot=FALSE, pog = map.precip.rast) {
+get_feather_map = function(feather_data, ind, poly_order=1, plot=FALSE, pog = map.precip.rast) {
+    .Deprecated("calc_feather_map")
     
-    tdat = feather.data[-ind,]
+    calc_feather_map(ind, feather_data, poly_order, pog)
+}
+
+calc_feather_map = function(ind, feather_data, poly_order=1, pog = map.precip.rast) {
+    
+    tdat = feather_data[-ind,]
 
     lm.res = lm(d2 ~ poly(map.d2,poly_order),data=tdat)
     
@@ -57,7 +63,7 @@ calc_feather_map = function(ind, feather.data, poly_order=1, plot=FALSE, pog = m
     lm.est.sigma = sd(lm.res$residuals)
     
     
-    pog[] = dnorm(feather.data$d2[ind], lm.est.mean, lm.est.sigma)
+    pog[] = dnorm(feather_data$d2[ind], lm.est.mean, lm.est.sigma)
     
     return(pog)
 }
