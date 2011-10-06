@@ -107,8 +107,7 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
     }
 
     for (int i=0; i< Niter; i++){
-        
-        if (i*Nthin % 1000 == 0)
+        if (opt.VERBOSE && i*Nthin % 1000 == 0)
             cout << "Iter " << setw(6) << i*Nthin << endl;
         
         for (int j=0; j < Nthin; j++){
@@ -258,24 +257,26 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
         //cout << "D_theta_hat by region: ";
         //cout << trans(D_theta_hat);
         
-        cout << "Deviance Results:" << endl;
-        cout << "=============================================" << endl;
+        if (opt.VERBOSE) {
+            cout << "Deviance Results:" << endl;
+            cout << "=============================================" << endl;
         
-        cout << "D hat: " << setprecision(6) << setw(8) << accu(D_hat) << endl;
-        cout << "pD: " << setprecision(6) << setw(8) << accu(pD) << endl;
-        cout << "pV: " << setprecision(6) << setw(8) << accu(pV) << endl;
+            cout << "D hat: " << setprecision(6) << setw(8) << accu(D_hat) << endl;
+            cout << "pD: " << setprecision(6) << setw(8) << accu(pD) << endl;
+            cout << "pV: " << setprecision(6) << setw(8) << accu(pV) << endl;
         
-        cout << "DIC total (pD): " << setprecision(6) << setw(8) << accu(D_hat+pD) << endl;
-        cout << "DIC by region:";
-        for(int r=0; r<p.nRegions; r++)
-            cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pD(r)+0.5);
-        cout << endl;
+            cout << "DIC total (pD): " << setprecision(6) << setw(8) << accu(D_hat+pD) << endl;
+            cout << "DIC by region:";
+            for(int r=0; r<p.nRegions; r++)
+                cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pD(r)+0.5);
+            cout << endl;
         
-        cout << "DIC total (pV): " << setprecision(6) << setw(8) << accu(D_hat+pV) << endl;
-        cout << "DIC by region:";
-        for(int r=0; r<p.nRegions; r++)
-            cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pV(r)+0.5);
-        cout << endl << endl;
+            cout << "DIC total (pV): " << setprecision(6) << setw(8) << accu(D_hat+pV) << endl;
+            cout << "DIC by region:";
+            for(int r=0; r<p.nRegions; r++)
+                cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pV(r)+0.5);
+            cout << endl << endl;
+        }
         
     }
     return(res);
