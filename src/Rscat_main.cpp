@@ -1,11 +1,9 @@
 #include "Rscat.h"
+#include <boost/timer.hpp>
 
 using namespace arma;
 using namespace Rcpp;
 using namespace std;
-
-
-
 
 SEXP mcmc_main(SEXP rChain,
               SEXP rBoundary,   // px2 matrix
@@ -51,11 +49,15 @@ SEXP mcmc_main(SEXP rChain,
     
     init_params(p,opt);
     
+    boost::timer t;
     MCMCLoop(p, opt, Nburn, Nthin, true, true);
+    cout << "Chain: " << p.chain_num << " - Tuning Completed [" << t.elapsed() << "s]\n";
     if (opt.VERBOSE)
         outputTuning(p, opt);
     
+    t.restart();
     MCMCLoop(p, opt, Nburn, Nthin, true, false);    
+    cout << "Chain: " << p.chain_num << " - Burnin Completed [" << t.elapsed() << "s]\n";
     
     init_attempts(p);
     if (opt.LOCATE) {
@@ -73,7 +75,9 @@ SEXP mcmc_main(SEXP rChain,
         open_cvfiles(p, opt);
     }
     
+    t.restart();
     List res = MCMCLoop(p, opt, Niter, Nthin, false, false);
+    cout << "Chain: " << p.chain_num << " - Sampling Completed [" << t.elapsed() << "s]\n\n";
     
     if (opt.VERBOSE) {
         cout << "Chain " << p.chain_num << ":" << endl;
