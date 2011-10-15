@@ -213,27 +213,15 @@ double calc_distance(double x1, double y1, double x2, double y2) {
     return( RRR * acos( 0.5*((1.0+q1)*q2 - (1.0-q1)*q3) ) );
 }
 
-
-NumericVector calc_distance_to_point(double px, double py, colvec &xc, colvec &yc) {
-
-    NumericVector dist(xc.n_elem);
-    for(int i=1; i < xc.n_elem; ++i) {
-        dist[i] = calc_distance(px,py,xc(i), yc(i));
+SEXP R_calc_distance_to_point(SEXP px, SEXP py, SEXP x, SEXP y) {
+    NumericVector xc(x), yc(y);
+    
+    NumericVector dist(xc.size());
+    for(int i=0; i < xc.size(); ++i) {
+        dist[i] = calc_distance(as<double>(px), as<double>(py), xc[i], yc[i]);
     }
     
     return(dist);
-}
-
-SEXP R_calc_distance_to_point(SEXP px, SEXP py, SEXP x, SEXP y) {
-    NumericVector xt(x);                 // creates Rcpp vector from SEXP
-    NumericVector yt(y);                   // creates Rcpp matrix from SEXP
-    
-    colvec xc(xt.begin(), xt.size(), false);
-    colvec yc(yt.begin(), yt.size(), false);
-    
-    NumericVector res = calc_distance_to_point( as<double>(px), as<double>(py), xc,yc);
-    
-    return(wrap(res));
 }
 
 
