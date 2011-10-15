@@ -1,3 +1,26 @@
+
+#get_feather_map = function(feather_data, ind, poly_order=1, plot=FALSE, pog = map.precip.rast) {
+#    .Deprecated("calc_feather_map")
+#    
+#    calc_feather_map(ind, feather_data, poly_order, pog)
+#}
+
+calc_feather_map = function(d2, data, poly_order=1, pog = map.precip.rast) {
+    
+    
+    l = lm(d2 ~ poly(map.d2,poly_order),data=data)
+    
+    lm.est.mean = rep(NA,length(pog[]))
+    lm.est.mean[!is.na(pog[])] = predict(l,newdata=data.frame(map.d2 = pog[!is.na(pog[])]))
+    
+    lm.est.sigma = sd(l$residuals)
+    
+    
+    pog[] = dnorm(d2, lm.est.mean, lm.est.sigma)
+    
+    return(pog)
+}
+
 mask_precip_map = function(map.mask) {
     data(map.precip.dat,package="isoscape")
     
@@ -45,28 +68,7 @@ plot_feather_model = function(data, poly_order=1, cv_ind=NULL) {
         abline(lm.res)
 }
 
-get_feather_map = function(feather_data, ind, poly_order=1, plot=FALSE, pog = map.precip.rast) {
-    .Deprecated("calc_feather_map")
-    
-    calc_feather_map(ind, feather_data, poly_order, pog)
-}
 
-calc_feather_map = function(ind, feather_data, poly_order=1, pog = map.precip.rast) {
-    
-    tdat = feather_data[-ind,]
-
-    lm.res = lm(d2 ~ poly(map.d2,poly_order),data=tdat)
-    
-    new = data.frame(map.d2 = pog[!is.na(pog[])])
-    lm.est.mean = rep(NA,length(pog[]))
-    lm.est.mean[!is.na(pog[])] = predict(lm.res,newdata=new)
-    lm.est.sigma = sd(lm.res$residuals)
-    
-    
-    pog[] = dnorm(feather_data$d2[ind], lm.est.mean, lm.est.sigma)
-    
-    return(pog)
-}
     
 
 
