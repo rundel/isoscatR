@@ -1,6 +1,7 @@
 #include <vector>
 #include <sstream>
 #include "Rscat.h"
+#include "Rscat_progressbar.h"
 
 using namespace Rcpp;
 using namespace arma;
@@ -84,6 +85,10 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
     vector< vector<mat> > samp_X(p.nLoci);
     mat samp_aniso, deviance, theta_fit;
 
+    string prefix = tune ? "Tuning" : (burnin ? "Burnin" : "Sampling");
+
+    progress_display progress_bar(Niter, cout, prefix);
+
     if(!burnin) {
         
         samp_alpha = mat(Niter,p.alpha.size());
@@ -159,6 +164,8 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
                     theta_fit(i,r+1) = region_ss[r];
             }
         }
+        
+        ++progress_bar;
     }
     
     List res;
