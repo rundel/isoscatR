@@ -14,6 +14,9 @@
 
 #include "Rscat_structs.h"
 
+#ifdef USEMAGMA
+#include "Rscat_magma_chol.h"
+#endif
 
 // Locate functions
 void update_Location(GlobalParams &p, GlobalOptions &opt);
