@@ -1,8 +1,9 @@
 require(coda)
-require(doMC)
 require(raster)
 require(maptools)
-registerDoMC()
+
+#require(doMC)
+#registerDoMC()
 
 scat_options = list( VERBOSE = FALSE,
                 
