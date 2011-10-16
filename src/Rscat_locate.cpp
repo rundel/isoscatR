@@ -78,7 +78,7 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
         
         rand_pred_locs.save(ss.str(),raw_ascii);
     } else if (opt.LOCATE && p.chain_num == 1) {
-        ss << opt.TMPDIR << "/pred_coords÷/.mat";
+        ss << opt.TMPDIR << "/pred_coords.mat";
 
         rand_pred_locs.save(ss.str(),raw_ascii);
     }
