@@ -1,3 +1,6 @@
+#ifndef _RSCAT_STRUCTS_H
+#define _RSCAT_STRUCTS_H
+
 struct GlobalParams {
     
     int chain_num;
@@ -151,3 +154,5 @@ struct GlobalOptions {
     double NULLPROB;
     double DELTA;
 };
+
+#endif
