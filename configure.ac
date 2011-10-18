@@ -7,6 +7,47 @@ USE_MAGMA=yes
 
 AC_PROG_CC(gcc)
 
+#################### R stuff ####################
+
+AC_ARG_WITH([r-include],
+	AC_HELP_STRING([--with-r-include=r_include],
+		[specify the full path to your R header files, e.g. /usr/share/R/include]),
+	[R_INCLUDE="$withval"])
+
+AC_ARG_WITH([r-lib],
+	AC_HELP_STRING([--with-r-lib=r-lib],
+		[specify the full path to your R shared libraries, e.g. /usr/lib64/R/lib]),
+	[R_LIB="$withval"])
+
+: ${R_HOME=`R RHOME`}
+if test -z "${R_HOME}"; then
+	AC_MSG_ERROR("could not determine R_HOME")
+else
+	CPICFLAGS=`"${R_HOME}/bin/R" CMD config CPICFLAGS`
+	if test -z "${R_INCLUDE}"; then
+		R_INCLUDE=`"${R_HOME}/bin/R" CMD config --cppflags`
+	else
+		R_INCLUDE="-I${R_INCLUDE}"
+	fi
+	
+	if test -z "${R_LIB}"; then
+		R_LIB=`"${R_HOME}/bin/R" CMD config --ldflags`
+	else
+		R_LIB="-L${R_LIB} -lR"
+	fi
+	
+	RCPPARMA_FLAGS=`${R_HOME}/bin/Rscript -e "RcppArmadillo:::CxxFlags()"`
+	RCPP_FLAGS=`${R_HOME}/bin/Rscript -e "Rcpp:::CxxFlags()"`
+	RCPP_LIBS=`${R_HOME}/bin/Rscript -e "Rcpp:::LdFlags()"`
+	
+	R_BLAS=`"${R_HOME}/bin/R" CMD config BLAS_LIBS`
+	R_LAPACK=`"${R_HOME}/bin/R" CMD config LAPACK_LIBS`
+	
+	CPPFLAGS+=" ${R_INCLUDE} ${RCPP_FLAGS} ${RCPPARMA_FLAGS}"
+	LIBS+=" ${R_LIB} ${RCPP_LIBS}"
+fi
+
+
 #################### CUDA Toolkit ####################
 
 AC_ARG_WITH(
@@ -17,6 +58,14 @@ AC_ARG_WITH(
 )
 AC_MSG_RESULT([setting CUDA home directory to ${CUDA_HOME}])
 
+NVCC=${CUDA_HOME}/bin/nvcc
+NCFLAGS="-arch=sm_20 -O2 -Xcompiler \"-O2 ${R_CPICFLAGS}\""
+AC_CHECK_FILE(
+	[${NVCC}],
+	,
+	[USE_MAGMA=no]
+)
+
 CUDA_INC=${CUDA_HOME}/include
 AC_MSG_CHECKING([for CUDA headers])
 AC_CHECK_FILE(
@@ -25,14 +74,13 @@ AC_CHECK_FILE(
 	[USE_MAGMA=no]
 )
 
+CUDA_LIBS="-lcuda -lcublas"
 AC_MSG_CHECKING([whether this is a 64-bit version of CUDA])
 AC_CHECK_FILE(
 	[${CUDA_HOME}/lib64/libcublas.so], 
 	[CUDA_LDFLAGS="-L${CUDA_HOME}/lib64"],
 	[CUDA_LDFLAGS="-L${CUDA_HOME}/lib"]
 )
-
-CUDA_LIBS="-lcuda -lcublas"
 
 #################### MAGMA Libraries ####################
 
@@ -60,18 +108,27 @@ AC_CHECK_FILE(
 )
 
 if test "${USE_MAGMA}" == "yes"; then
-	CPPFLAGS="${CPPFLAGS} ${CUDA_CPPFLAGS} -DUSEMAGMA -I${MAGMA_INC}"
-	LDFLAGS="${LDFLAGS} ${CUDA_LDFLAGS} -L${MAGMA_LIB}"
-	LIBS="${LIBS} ${CUDA_LIBS} -lmagmablas -lmagma"
+	CPPFLAGS+=" ${CUDA_CPPFLAGS} -DUSEMAGMA -I${MAGMA_INC}"
+	LDFLAGS+=" ${CUDA_LDFLAGS} -L${MAGMA_LIB}"
+	LIBS+=" ${CUDA_LIBS} -lmagmablas -lmagma"
+	CU_FILES=Rscat_cov_gpu.cu
+	NCFLAGS="-arch=sm_20 -O2 -Xcompiler \"-O2 -fPIC\""
+	
 else
 	AC_MSG_RESULT([Unable to locate magma library / headers, compiling without gpu support])
 fi
+
+
+CPPFLAGS+=" -fpic"
 
 #################### Makevars ####################
 
 AC_SUBST([CPPFLAGS])
 AC_SUBST([LDFLAGS])
 AC_SUBST([LIBS])
+AC_SUBST([CU_FILES])
+AC_SUBST([NVCC])
+AC_SUBST([NCFLAGS])
 
-AC_CONFIG_FILES([src/Makevars])
+AC_CONFIG_FILES([src/Makefile])
 AC_OUTPUT
