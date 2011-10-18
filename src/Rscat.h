@@ -21,8 +21,9 @@
 #include <cuda.h>
 
 arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern);
-template <typename T> void init_gpu_mem(T *source, T *d_B, int n);
-template <typename T> void clean_gpu_mem(T *dest, T *d_B, int n);
+
+void cov_powered_exponential_gpu(double* dist, int n, double sigma2, double phi, double kappa, double nugget, int n_threads);
+RcppExport SEXP pow_exp_test(SEXP rX, SEXP ralpha, SEXP gpu, SEXP threads);
 
 void mag_schol_debug(arma::mat &B, bool gpu = true);
 RcppExport SEXP magma_chol(SEXP rX, SEXP rGPU, SEXP rFLOAT);
