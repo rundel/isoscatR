@@ -15,7 +15,18 @@
 #include "Rscat_structs.h"
 
 #ifdef USEMAGMA
-#include "Rscat_magma_chol.h"
+
+#include <cublas.h>
+#include <cuda.h>
+
+void checkCudaError(const char *msg);
+void checkCublasError(const char *msg);
+std::string cublasGetErrorString(cublasStatus err);
+void mag_schol(arma::mat &B, bool gpu = true);
+void mag_schol_debug(arma::mat &B, bool gpu = true);
+void mag_dchol(arma::mat &B, bool gpu = true);
+RcppExport SEXP magma_chol(SEXP rX, SEXP rGPU, SEXP rFLOAT);
+
 #endif
 
 // Locate functions
