@@ -6,26 +6,26 @@ using namespace arma;
 using namespace Rcpp;
 using namespace std;
 
-mat calc_L( vector<double> alpha, mat dist, bool usematern) {
-    
+mat calc_L( vector<double> alpha, mat& dist, bool usematern) {
     
     mat m = (usematern) 
             ? cov_matern(alpha[0], alpha[1], alpha[2], alpha[3], dist, false)
             : cov_powered_exponential(alpha[0], alpha[1], alpha[2], alpha[3], dist);
-   
-    mat L = chol(m);    
+    
+    mat L = trans( chol(m) ); // Chol returns Upper Triangular, return LT
+
     if (L.is_empty()) {
         cout << "Cholesky decomposition failed! ";
         cout << "Alpha: " << alpha[0] << " " << alpha[1] << " "
                           << alpha[2] << " " << alpha[3] << endl;
     }
-    // Chol returns Upper Triangular, return LT
-    return(trans(L));
+
+    return(L);
 }
 
 
 // Powered exponential covariance function with sill and nugget effect
-mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, mat dist) {
+mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, mat& dist) {
     
     int nr = dist.n_rows;
     mat L = sigma2 * exp( -pow(dist / phi, kappa) ) + eye<mat>(nr,nr)*nugget;
@@ -34,7 +34,7 @@ mat cov_powered_exponential( double sigma2, double phi, double kappa, double nug
 }
 
 // Matern covariance function with sill and nugget effect
-mat cov_matern( double sigma2, double phi, double nu, double nugget, mat dist, bool uselog) {
+mat cov_matern( double sigma2, double phi, double nu, double nugget, mat& dist, bool uselog) {
     
     int nr = dist.n_rows;
     
@@ -63,7 +63,7 @@ mat cov_matern( double sigma2, double phi, double nu, double nugget, mat dist, b
     return( (uselog) ? exp(L) : L );
 }
 
-mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, vec dist, bool uselog) {
+mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, vec& dist, bool uselog) {
     
     vec cov(dist.n_elem);
     

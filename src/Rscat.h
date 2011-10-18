@@ -81,10 +81,10 @@ void outputTuning(GlobalParams &p, GlobalOptions &opt);
 
 // cov Functions
 
-arma::mat calc_L( std::vector<double> alpha, arma::mat dist, bool usematern);
-arma::mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, arma::mat dist);
-arma::mat cov_matern( double sigma2, double phi, double nu, double nugget, arma::mat dist, bool uselog);
-arma::mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, arma::vec dist, bool uselog);
+arma::mat calc_L( std::vector<double> alpha, arma::mat& dist, bool usematern);
+arma::mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, arma::mat& dist);
+arma::mat cov_matern( double sigma2, double phi, double nu, double nugget, arma::mat& dist, bool uselog);
+arma::mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, arma::vec& dist, bool uselog);
 RcppExport SEXP R_cov_matern( SEXP rsigma2, SEXP rphi, SEXP rnu, SEXP rnugget, SEXP rdist, SEXP distmat, SEXP ruselog);
 
 
