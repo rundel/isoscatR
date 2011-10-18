@@ -87,13 +87,20 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
 
 void update_Location(GlobalParams &p, GlobalOptions &opt) {
     
+    bool CV = opt.CROSSVALIDATE;
     
     int nPos = p.predDist.n_rows;
     int nknown = p.locs.n_rows;
     int npred = nPos - nknown;
-    
+
+    mat ind_logprob = (CV) ? zeros<mat>(p.cvIndivs.size(),npred) : mat();
+
+#ifndef USEMAGMA
     mat newL = calc_L(p.alpha,p.predDist,opt.USEMATERN);
- 
+#else
+    mat newL = calc_L_gpu(p.alpha,p.predDist,opt.USEMATERN);
+#endif
+
     for(int l=0; l<p.nLoci; l++) {
         mat newX = join_cols(p.X[l],randn<mat>(npred,p.nAlleles[l]));
     
@@ -103,55 +110,35 @@ void update_Location(GlobalParams &p, GlobalOptions &opt) {
         
         mat alleleProb = (1-opt.DELTA) * calc_f( res ) + opt.DELTA/p.nAlleles[l];
         
-        for(int j=0; j<p.nAlleles[l]; j++) {
-            rowvec curvec = trans(alleleProb.col(j));
-            curvec.save( *(p.alfileGzStreams[l][j]), raw_binary );
+        if (!CV) {
+            for(int j=0; j<p.nAlleles[l]; j++) {
+                rowvec curvec = trans(alleleProb.col(j));
+                curvec.save( *(p.alfileGzStreams[l][j]), raw_binary );
+            }
+        } else {
+            for(int i=0; i < p.cvIndivs.size(); i++) {
+                int al1 = p.cvGenotypes(2*i  , l);
+                int al2 = p.cvGenotypes(2*i+1, l);
+
+                vec newP1,newP2;
+
+                if (al1 < 0) newP1 = ones<vec>(npred);
+                else         newP1 = alleleProb.col(al1);
+
+                if (al2 < 0) newP2 = ones<vec>(npred);
+                else         newP2 = alleleProb.col(al2);
+
+                if (al1 == al2) ind_logprob.row(i) += trans( log(opt.NULLPROB * newP1 + (1-opt.NULLPROB) * square(newP1)) );
+                else            ind_logprob.row(i) += trans( log((1-opt.NULLPROB) * (newP1 % newP2)) );
+
+            }
         }
     }
-}
-
-void update_LocationCV(GlobalParams &p, GlobalOptions &opt) {
     
-    
-    int nPos = p.predDist.n_rows;
-    int nknown = p.locs.n_rows;
-    int npred = nPos - nknown;
-    
-    int nCVInd = p.cvIndivs.size();
-    
-    mat ind_logprob = zeros<mat>(nCVInd,npred);
-    mat newL = calc_L(p.alpha,p.predDist,opt.USEMATERN);
- 
-    for(int l=0; l<p.nLoci; l++) {
-        mat newX = join_cols(p.X[l],randn<mat>(npred,p.nAlleles[l]));
-    
-        mat mean = p.mu[l] * ones<mat>(npred,p.nAlleles[l]) + (ones<colvec>(npred) * (p.xi[l] * p.eta[l]));
-        mat var = newL*newX;
-        mat res = mean  + var(span(nknown,nPos-1), span::all);
-        
-        mat alleleProb = (1-opt.DELTA) * calc_f( res ) + opt.DELTA/p.nAlleles[l];
-        
-        for(int i=0; i < nCVInd; i++) {
-            int al1 = p.cvGenotypes(2*i  , l);
-            int al2 = p.cvGenotypes(2*i+1, l);
-
-            vec newP1,newP2;
-
-            if (al1 < 0) newP1 = ones<vec>(npred);
-            else         newP1 = alleleProb.col(al1);
-
-            if (al2 < 0) newP2 = ones<vec>(npred);
-            else         newP2 = alleleProb.col(al2);
-
-            if (al1 == al2) ind_logprob.row(i) += trans( log(opt.NULLPROB * newP1 + (1-opt.NULLPROB) * square(newP1)) );
-            else            ind_logprob.row(i) += trans( log((1-opt.NULLPROB) * (newP1 % newP2)) );
-
+    if (CV) {
+        for(int i=0; i < p.cvIndivs.size(); i++) {
+            rowvec curvec = ind_logprob.row(i);
+            curvec.save( *(p.cvfileGzStreams[i]), raw_binary );
         }
-        
-    }
-    
-    for(int i=0; i < nCVInd; i++) {
-        rowvec curvec = ind_logprob.row(i);
-        curvec.save( *(p.cvfileGzStreams[i]), raw_binary );
     }
 }
