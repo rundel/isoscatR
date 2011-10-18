@@ -1,27 +1,40 @@
-#include <cuda.h>
-
-__global__ void powered_exponential_kernel(double* dist, int n, double sigma2, double phi, double kappa, double nugget) {
-
-    const int xid = blockIdx.x * blockDim.x + threadIdx.x,
-              yid = blockIdx.y * blockDim.y + threadIdx.y;
+/*__global__ void powered_exponential_kernel(double* dist, const int n, 
+                                           const double sigma2, const double phi, 
+                                           const double kappa, const double nugget) 
+{
+    const int col = threadIdx.x, row = blockIdx.x;
+    const int i = col+n*row;
     
-    if (xid < n && yid < n) {
-        dist[yid+n*xid] = sigma2 * exp( -pow(dist[yid+n*xid] / phi, kappa) ) + nugget*(xid==yid);
+    if (col < n && row < n) {
+        dist[i] = sigma2 * exp( -pow(dist[i] / phi, kappa) ) + nugget*(col==row);
     }
+}*/
+
+__global__ void powered_exponential_kernel(double* dist, const int n, const int n2, 
+                                           const double sigma2, const double phi, 
+                                           const double kappa, const double nugget) 
+{
+    int n_threads = gridDim.x * blockDim.x;
+    int pos = blockDim.x * blockIdx.x + threadIdx.x;
+
+    for (int i = pos; i < n2; i += n_threads)
+        dist[i] = sigma2 * exp( -pow(dist[i] / phi, kappa) ) + nugget*( i%n == 0 );
+    
 }
 
 
-
-void cov_powered_exponential_gpu(double* dist, int n, double sigma2, double phi, double kappa, double nugget) {
-
-    int BLK_DX = 16, BLK_DY = 16;
-
-    dim3 grids( (n+BLK_DX-1)/BLK_DX, (n+BLK_DY-1)/BLK_DY );
-    dim3 threads( BLK_DX, BLK_DY );
-
-    powered_exponential_kernel<<<grids, threads>>>(dist, n, sigma2, phi, kappa, nugget);
+void cov_powered_exponential_gpu(double* dist, const int n, 
+                                 double sigma2, double phi, 
+                                 double kappa, double nugget,
+                                 int n_threads) 
+{
+    int n2 = n*n;
+    int blocks = (n+n_threads-1)/n_threads;
     
-    cudaThreadSynchronize();
+    powered_exponential_kernel<<<blocks, n_threads>>>(dist, n, n2, sigma2, phi, kappa, nugget);
+    
+    //cudaThreadSynchronize();
+    //cudaThreadExit();
 }
 
 
