@@ -14,20 +14,25 @@
 
 #include "Rscat_structs.h"
 
+
 #ifdef USEMAGMA
 
 #include <cublas.h>
 #include <cuda.h>
 
+arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern);
+template <typename T> void init_gpu_mem(T *source, T *d_B, int n);
+template <typename T> void clean_gpu_mem(T *dest, T *d_B, int n);
+
+void mag_schol_debug(arma::mat &B, bool gpu = true);
+RcppExport SEXP magma_chol(SEXP rX, SEXP rGPU, SEXP rFLOAT);
+
 void checkCudaError(const char *msg);
 void checkCublasError(const char *msg);
 std::string cublasGetErrorString(cublasStatus err);
-void mag_schol(arma::mat &B, bool gpu = true);
-void mag_schol_debug(arma::mat &B, bool gpu = true);
-void mag_dchol(arma::mat &B, bool gpu = true);
-RcppExport SEXP magma_chol(SEXP rX, SEXP rGPU, SEXP rFLOAT);
 
 #endif
+
 
 // Locate functions
 void update_Location(GlobalParams &p, GlobalOptions &opt);
