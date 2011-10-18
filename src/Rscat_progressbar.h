@@ -96,7 +96,7 @@ public:
         m_os << "| " << std::setw(3) << static_cast<unsigned int>(perc*100.0) << "%";
         m_os << " [" << (int)(time) << "s of ";
         
-        if (perc > 0.03) m_os << (int)(remaining) << "s";
+        if (perc > 0.01) m_os << (int)(remaining) << "s";
         else             m_os << "--s";
         
         m_os << "]" << std::flush;
