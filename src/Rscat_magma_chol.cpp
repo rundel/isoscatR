@@ -1,17 +1,149 @@
 #ifdef USEMAGMA
 
-#include <cublas.h>
-#include <cuda.h>
+#include "Rscat.h"
 #include <magma.h>
-#include "Rscat_magma_chol.h"
+#include <boost/timer.hpp>
+
+arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern) {
+    
+    if (usematern)
+        return calc_L(alpha, dist, usematern);
+    
+    int n = dist.n_rows, n2 = n*n, info;
+    double* d_B;
+    
+    init_gpu_mem<double>(dist.memptr(), d_B, n);
+    
+    magma_dpotrf_gpu('L', n, d_B, n, &info);
+   
+    if (info < 0) {
+        std::cout << "Error: illegal argument " << -1 * info << " in magChol\n"; 
+        throw( std::exception() );
+    } else if (info > 0) {
+        std::cout << "Error: leading minor of order " << info << " is not positive definite\n";
+        throw( std::exception() );
+    }
+    
+    
+    arma::mat L(dist.n_rows, dist.n_cols);
+    clean_gpu_mem(L.memptr(), d_B, n);
+    
+    for(int col=1; col < n; ++col) {
+        double* colptr = L.colptr(col);
+        memset(colptr, 0, col * sizeof(double));
+    }
+    
+    return(L);
+}
+
+template <typename T>
+void init_gpu_mem(T *source, T *d_B, int n)
+{    
+    int n2 = n*n;
+    
+    cublasAlloc(n2, sizeof(T), (void**)&d_B);
+    checkCublasError("device memory allocation failed");
+    
+    cublasSetVector(n2, sizeof(T), source, 1, d_B, 1);        
+}
+
+template <typename T>
+void clean_gpu_mem(T *dest, T *d_B, int n)
+{    
+    int n2 = n*n;
+    
+    cublasGetVector(n2, sizeof(T), d_B, 1, dest, 1);
+    
+    cublasFree(d_B);        
+}
+
+
+void mag_schol_debug(arma::mat &A, bool gpu)
+{
+    boost::timer t,total;
+    arma::fmat B = arma::conv_to<arma::fmat>::from(A);
+    std::cout << "Conv: " << t.elapsed() << "\n"; 
+    
+    int n = B.n_rows, n2 = n * n, info;
+    
+    BOOST_ASSERT(B.n_rows == B.n_cols);
+    
+    if(gpu) {
+        float *d_B;
+        t.restart();
+        cublasAlloc(n2, sizeof(float), (void**)&d_B);
+        checkCublasError("device memory allocation failed in 'magChol'");
+        std::cout << "Alloc: " << t.elapsed() << "\n"; 
+        
+        t.restart();
+        cublasSetVector(n2, sizeof(float), B.memptr(), 1, d_B, 1);
+        std::cout << "Set: " << t.elapsed() << "\n"; 
+        
+        t.restart();
+        magma_spotrf_gpu('L', n, d_B, n, &info);
+        std::cout << "Calc: " << t.elapsed() << "\n"; 
+        
+        t.restart();
+        cublasGetVector(n2, sizeof(float), d_B, 1, B.memptr(), 1);
+        std::cout << "Get: " << t.elapsed() << "\n"; 
+        
+        t.restart();
+        cublasFree(d_B);
+        std::cout << "Free: " << t.elapsed() << "\n"; 
+        
+    } else {
+        float *h_B;
+        cudaMallocHost((void**)&h_B, n2 * sizeof(float));
+        checkCudaError("host memory allocation failed in 'magChol'");
+
+        memcpy(h_B, B.memptr(), n2 * sizeof(float));
+        magma_spotrf('L', n, h_B, n, &info);
+        memcpy(B.memptr(), h_B, n2 * sizeof(float));
+
+        cudaFreeHost(h_B);
+    }
+   
+    if (info < 0) {
+        std::cout << "Error: illegal argument " << -1 * info << " in magChol\n"; 
+        throw( std::exception() );
+    } else if (info > 0) {
+        std::cout << "Error: leading minor of order " << info << " is not positive definite\n";
+        throw( std::exception() );
+    }
+    
+    t.restart();    
+    for(int col=1; col < n; ++col) {
+        float* colptr = B.colptr(col);
+        memset(colptr, 0, col * sizeof(float));
+    }
+    std::cout << "ToLow: " << t.elapsed() << "\n"; 
+    
+    
+    t.restart();    
+    A = arma::conv_to<arma::mat>::from(B);
+    std::cout << "Conv: " << t.elapsed() << "\n"; 
+    
+    std::cout << "Total: " << total.elapsed() << "\n\n";     
+}
+
+SEXP magma_chol(SEXP rX, SEXP rGPU, SEXP rFLOAT)
+{    
+
+    arma::mat X = Rcpp::as<arma::mat>(rX);
+
+    bool gpu = Rcpp::as<bool>(rGPU);
+    
+    mag_schol_debug(X,gpu);
+    
+    return Rcpp::wrap(X);
+}
 
 void checkCudaError(const char *msg)
 {
     cudaError_t err = cudaGetLastError();
     if(err != cudaSuccess) {
-        std::stringstream s;
-        s << "CUDA " << msg << " : " << cudaGetErrorString(err);
-        throw( cuda_exception(s.str()) );
+        std::cout << "Error: CUDA " << msg << " : " << cudaGetErrorString(err) << "\n";
+        throw( std::exception() );
     }
 }
 
@@ -20,12 +152,12 @@ void checkCublasError(const char *msg)
     cublasStatus err = cublasGetError();
     if(err != CUBLAS_STATUS_SUCCESS) {
         std::stringstream s;
-        s << "cuBLAS " << msg << " : " << cublasGetErrorString(err);
-        throw( cuda_exception(s.str()) );
+        std::cout << "Error: cuBLAS " << msg << " : " << cublasGetErrorString(err);
+        throw( std::exception() );
     }
 }
 
-char *cublasGetErrorString(cublasStatus err)
+std::string cublasGetErrorString(cublasStatus err)
 {
     switch(err) {
         case CUBLAS_STATUS_SUCCESS :
@@ -46,66 +178,6 @@ char *cublasGetErrorString(cublasStatus err)
             return "an internal CUBLAS operation failed";
         default :
             return "unknown error type";
-    }
-}
-
-
-void magChol(arma::mat &B, bool gpu = true)
-{
-    
-   
-    int n = a.n_rows, n2 = n * n, info;
-
-    BOOST_ASSET(a.n_rows == a.n_cols);
-
-    double *d_B;
-    cublasAlloc(n2, sizeof(double), (void**)&d_B);
-    checkCublasError("device memory allocation failed in 'magChol'");
-   
-    if(gpu) {
-      
-        cublasSetVector(n2, sizeof(double), B.memptr(), 1, d_B, 1);
-        magma_dpotrf_gpu('L', n, d_B, n, &info);
-        cublasGetVector(n2, sizeof(double), d_B, 1, B.memptr(), 1);
-
-    } else {
-        double *h_B;
-
-        cudaMallocHost((void**)&h_B, n2 * sizeof(double));
-        checkCudaError("host memory allocation failed in 'magChol'");
-
-        memcpy(h_B, B, n2 * sizeof(double));
-        magma_dpotrf('L', n, h_B, n, &info);
-        memcpy(B, h_B, n2 * sizeof(double));
-
-        cudaFreeHost(h_B);
-    }
-   
-    std::stringstream s;
-    if (info < 0) {
-        s << "illegal argument " << -1 * info << " in 'magChol"; 
-        throw( cuda_exception(s.str()) )
-    } else if (info > 0) {
-        s << "leading minor of order " << info << " is not positive definite";
-        throw( cuda_exception(s.str()) )
-    }
-    cublasFree(d_B);
-}
-
-SEXP magma_chol(SEXP rX, SEXP rGPU) {
-    
-    try {
-        Rcpp::NumericMatrix tX(rX);
-        arma::mat X = arma::mat(tX.begin(),tX.nrow(),tX.ncol(),false);
-        
-        bool gpu = Rcpp::as<bool>(rGPU);
-        
-        magChol(X,gpu);
-        
-        return Rcpp::wrap(X);
-        
-    } catch( std::exception &ex ) {
-        Rcpp::forward_exception_to_r( ex );
     }
 }
 
