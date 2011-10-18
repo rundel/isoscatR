@@ -8,6 +8,6 @@ Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 LazyLoad: yes
-Depends: Rcpp (>= 0.8.6), RcppArmadillo (>= 0.2.7), coda, doMC, rgeos
+Depends: Rcpp (>= 0.8.6), RcppArmadillo (>= 0.2.7), coda, rgeos
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: GNU make
