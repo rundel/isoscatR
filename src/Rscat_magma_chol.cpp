@@ -25,6 +25,7 @@ SEXP pow_exp_test(SEXP rX, SEXP ralpha, SEXP gpu, SEXP threads)
         double *d_B;
     
         cublasAlloc(n2, sizeof(double), (void**)&d_B);
+        checkCublasError("device memory allocation failed in 'magChol'");
         cublasSetVector(n2, sizeof(double), dist.memptr(), 1, d_B, 1);        
 
         cov_powered_exponential_gpu(d_B,n,alpha[0],alpha[1],alpha[2],alpha[3],Rcpp::as<int>(threads));
