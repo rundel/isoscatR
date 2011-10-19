@@ -125,7 +125,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
         if (!burnin) {
             if (opt.LOCATE || opt.CROSSVALIDATE)
                 update_Location(p, opt);
-
             
             samp_aniso(i,0) = p.anisoAngle;
             samp_aniso(i,1) = p.anisoRatio;

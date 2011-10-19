@@ -57,7 +57,7 @@ arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern
     checkCudaError("Cov Power Exp Kernel");
     
     magma_dpotrf_gpu('L', n, d_B, n, &info);
-   
+    
     if (info < 0) {
         std::cout << "Error: illegal argument " << -1 * info << " in magChol\n"; 
         throw( std::exception() );

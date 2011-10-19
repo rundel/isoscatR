@@ -58,8 +58,6 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
     bound = read_boundary_file(boundfile)
     
     locs = as.matrix(locdata[,5:6])
-    #locnames = locdata[,1]
-    locindex = locdata[,2]
     
     geno = genodata[[1]]
     indivlocs = genodata[[2]]
@@ -96,6 +94,7 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
         geno = geno[-rows,]
         indivlocs = indivlocs[-cv_indivs]
         
+        # if we remove all indivs from a loc drop that loc
         locs = locs[which( (1:nLocs %in% unique(indivlocs)) ),]
         
         i=1
@@ -122,8 +121,6 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
         perm = sample(1:n,n)
         
         locs = locs[perm,]
-        #locnames = locnames[perm]
-        locindex = locindex[perm]
         
         newid = rep(NA,length(indivlocs))
         for(i in 1:n) {
@@ -137,7 +134,7 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
               bound,
               locs,
               geno,
-              indivlocs-1,
+              indivlocs-1, # change to 0 indexing
               nAllele,
               nIter,
               nThin,
