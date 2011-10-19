@@ -12,7 +12,7 @@ for f in config.log config.status config.cache ; do
 done
 
 cd src
-rm *.o
-rm *.so
+rm -f *.o
+rm -f *.so
 rm -f Makevars
 
