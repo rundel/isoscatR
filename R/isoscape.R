@@ -22,7 +22,7 @@ calc_feather_map = function(d2, data, poly_order=1, pog = map.precip.rast) {
 }
 
 mask_precip_map = function(map.mask) {
-    data(map.precip.dat,package="isoscape")
+    data(map.precip.dat,package="Rscat")
     
     map.precip.rast = raster(map.precip.dat)
     map.precip.rast[map.precip.rast[]==-999] = NA
