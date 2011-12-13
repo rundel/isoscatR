@@ -45,7 +45,7 @@ create_raster = function(locs,step) {
     return( r )
 }
 
-allele_raster_from_file = function(root, ind = NULL, chain = 1) {
+allele_raster_from_file = function(root, ind = NULL, chain = 1, func = median) {
     
     if (is.null(ind))
         ind=".*"
@@ -76,7 +76,7 @@ allele_raster_from_file = function(root, ind = NULL, chain = 1) {
     stopifnot(all(!is.na(cells)))
 
     z = read_allele_file(file, nr=nrow(pred_locs))
-    r[cells] = exp(apply(z,1,median))
+    r[cells] = exp(apply(z,1,func))
     
     return(r)
 }
