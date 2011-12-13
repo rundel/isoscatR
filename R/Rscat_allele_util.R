@@ -81,6 +81,46 @@ allele_raster_from_file = function(root, ind = NULL, chain = 1, func = median) {
     return(r)
 }
 
+allele_brick_from_file = function(root, ind = NULL, chain = 1) {
+    
+    if (is.null(ind))
+        ind=".*"
+    
+    file = find_ind_file(root, ind, chain)
+    
+    if (length(file) == 0) {
+        stop("Error unable to locate allele file in: ", paste(head(d),collapse=" "), " ...")
+    }    
+    if (length(file) != 1) {
+        if (ind == ".*")
+            file = file[1]
+        else
+            stop("Error multiple allele files found: ",file)
+    }
+    
+    file_dir = dirname(file)
+    pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]+_",chain,".mat",sep=""), full.names=TRUE)
+    stopifnot(length(pred_file)==1)
+    
+    pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
+    
+    step = calc_step(pred_locs)
+    r = create_raster(pred_locs,step)
+    
+    cells = cellFromXY(r,pred_locs)
+    stopifnot(all(!is.na(cells)))
+
+    z = read_allele_file(file, nr=nrow(pred_locs))
+    
+    b = brick(r, nl=ncol(z))
+    data = matrix(NA,ncol=ncol(z),nrow=ncell(r))
+    data[cells,] = exp(z)
+    
+    values(b) = data
+    
+    return(b)
+}
+
 read_allele_file = function(file, nr, nc, byrow=FALSE) {
     
     stopifnot(!missing(file))
