@@ -30,6 +30,10 @@ create_raster = function(locs,step) {
     if (min(locs) > -2*pi & max(locs) < 2*pi)
         locs=locs*180/pi
 
+    if(missing(step)) {
+        step = min(dist(locs))
+    }
+
     xr = range(locs[,1]) + c(-1,1)*step/2
     yr = range(locs[,2]) + c(-1,1)*step/2
 
