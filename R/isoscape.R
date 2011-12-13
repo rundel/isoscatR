@@ -5,6 +5,39 @@
 #    calc_feather_map(ind, feather_data, poly_order, pog)
 #}
 
+calc_feather_brick = function(ind_d, obs_d, locs, brick, progressbar = FALSE) {
+    
+    map_d = brick[cellFromXY(brick,locs)]
+    
+    data = brick[]
+    
+    if(progressbar) pb = txtProgressBar(style=3,max=ncol(map_d))
+    
+    for(c in 1:ncol(map_d)) {
+        l = lm(obs_d ~ map_d[,c])
+        
+        coefs = l$coefficients
+        subset = !is.na(data[,c])
+
+        m = rep(NA,nrow(data))
+        m[subset] = coefs[1]+coefs[2]*data[subset,c]
+        s = sd(l$residuals)
+
+
+        data[,c] = dnorm(ind_d, m, s)
+        
+        if(progressbar) setTxtProgressBar(pb, c)
+    }
+    
+    if(progressbar) close(pb)
+    
+    b=brick
+    values(b) = data
+    
+    return(b)
+}
+
+
 calc_feather_map = function(d2, data, poly_order=1, pog = map.precip.rast) {
     
     
