@@ -62,7 +62,6 @@ void MCMCTune(GlobalParams &p, GlobalOptions &opt) {
     p.ratio_sd *= tuneScale_1d( calc_accept_ratio(p.ratioAccept,p.ratioAttempt) );
     
     for(int l=0; l<p.nLoci; ++l) {
-        p.mu_sd(l)    *= tuneScale_1d( calc_accept_ratio(p.muAccept(l), p.muAttempt(l)) );
         p.xi_sd(l)    *= tuneScale_1d( calc_accept_ratio(p.xiAccept(l), p.xiAttempt(l)) );
         p.beta_sd(l)  *= tuneScale_1d( calc_accept_ratio(p.betaAccept(l), p.betaAttempt(l)) );
         
@@ -92,7 +91,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
     if(!burnin) {
         
         samp_alpha = mat(Niter,p.alpha.size());
-        samp_mu = mat(Niter,p.nLoci);
         samp_xi = mat(Niter,p.nLoci);
         samp_beta = mat(Niter,p.nLoci);
         
@@ -135,7 +133,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
             samp_alpha(i,3) = p.alpha[3];
 
             for (int l=0; l < p.nLoci; l++) {
-                samp_mu(i,l)   = p.mu[l];
                 samp_xi(i,l)   = p.xi[l];
                 samp_beta(i,l) = p.beta[l];
                 
@@ -173,7 +170,7 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
         //                   Named("xibeta") = samp_xibeta,
         //                   Named("mu") = samp_mu);
         
-        vector<string> names_alpha, names_aniso, names_xibeta, names_mu;
+        vector<string> names_alpha, names_aniso, names_xibeta;
         names_alpha.push_back("alpha[0] - sigma2");
         names_alpha.push_back("alpha[1] - phi");
         names_alpha.push_back("alpha[2] - nu");
@@ -188,8 +185,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
             ss1 << "|xi|*beta [" << l << "]";
             names_xibeta.push_back(ss1.str());
             
-            ss2 << "mu["<< l << "]";
-            names_mu.push_back(ss2.str());
         }
         
         
@@ -201,11 +196,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
         
         res["deviance"] = List::create(Named("names") = "deviance",
                                        Named("values") = sum(deviance,1));
-        
-        if (!opt.FIXMU) {
-            res["mu"] = List::create(Named("names") = names_mu,
-                                     Named("values") = samp_mu);
-        }
         
         if (!opt.FIXRATIO && !opt.FIXANGLE) {
             res["aniso"] = List::create(Named("names") = names_aniso,
@@ -238,7 +228,6 @@ List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, bool bu
         
         colvec D_theta_hat = zeros<colvec>(p.nRegions);
         for (int l=0; l < p.nLoci; l++) {
-            double mean_mu = mean(samp_mu.col(l));
             double mean_xi = mean(samp_xi.col(l));
             
             rowvec mean_eta = mean(samp_eta[l],0);
@@ -293,7 +282,6 @@ void MCMCStep( GlobalParams &p, GlobalOptions &opt, bool burnin) {
     update_Beta(p, opt);    //cout << "beta" << endl;
     update_Eta(p,opt);      //cout << "eta" << endl;
     update_Xi(p,opt);       //cout << "xi" << endl;
-    update_Mu(p, opt);      //cout << "mu" << endl;
     update_Alpha(p, opt);   //cout << "alpha" << endl;
     update_X(p, opt);       //cout << "X" << endl;
     
@@ -433,34 +421,12 @@ void update_Alpha(GlobalParams &p, GlobalOptions &opt) {   // 4
     }
 }
 
-
-
-
-
-
-// update Mu (the background "ancestral" allele freqs)
-void update_Mu(GlobalParams &p, GlobalOptions &opt) {    // NA  1xA[l]
-    
-    if (opt.FIXMU) return;
     
     for(int l=0; l<p.nLoci; l++) {
         
-        p.muAttempt[l] +=1;
         
-        double newMu = p.mu[l] + rnorm(1,0,p.mu_sd(l))[0];
         
-        mat newTheta = calc_theta(newMu, p.eta[l], p.xi[l], p.L, p.X[l]);
-        
-        colvec newLogLik = calc_multinom_loglik(newTheta,    p.count[l], p.sumCount[l]);
-                                                           // Normal prior N(0,10)
-        double logLikRatio = accu(newLogLik - p.logLik[l]) - 0.5*(pow(newMu,2)-pow(p.mu[l],2))/pow(10.0,2); 
-        
-        if( runif(1)[0] < exp(logLikRatio) ){ //accept move 
-            p.muAccept[l] +=1;
             
-            p.theta[l] = newTheta;
-            p.logLik[l] = newLogLik;
-            p.mu[l] = newMu;                
         }
     }
 }

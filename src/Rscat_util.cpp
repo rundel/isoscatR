@@ -173,10 +173,6 @@ void parseOptions(SEXP sexpRopt, GlobalOptions &opt) {
     opt.XISD           = as<double>(Ropt["XISD"]);
     opt.SIGMAXI        = as<double>(Ropt["SIGMAXI"]);
     
-    opt.FIXMU          = as<bool>(Ropt["FIXMU"]);
-    opt.MU             = as<NumericVector>(Ropt["MU"]);
-    opt.MUSD           = as<double>(Ropt["MUSD"]);
-    
     opt.FIXETA         = as<bool>(Ropt["FIXETA"]);
     opt.ETA            = as<NumericVector>(Ropt["ETA"]);
     opt.ETASD          = as<double>(Ropt["ETASD"]);

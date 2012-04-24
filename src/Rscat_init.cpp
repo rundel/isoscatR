@@ -38,7 +38,6 @@ void calc_counts(GlobalParams &p, GlobalOptions &opt) {
 void init_params(GlobalParams &p, GlobalOptions &opt) {
     
     p.alpha.resize(4);
-    p.mu.resize(p.nLoci);             // NA  1xA[l]
     p.xi.resize(p.nLoci);
     p.eta.resize(p.nLoci);
     p.beta.resize(p.nLoci);
@@ -78,13 +77,6 @@ void init_params(GlobalParams &p, GlobalOptions &opt) {
         if (opt.ETA.size() != p.nLoci)
             Rf_error("Length of values for fixed eta does not match number of Loci.");
     }
-    if (opt.FIXMU) {
-        if (opt.MU.size() == 1)
-            opt.MU = NumericVector(p.nLoci, opt.MU[0]);
-        
-        if (opt.MU.size() != p.nLoci)
-            Rf_error("Length of values for fixed mu does not match number of Loci.");
-    }
     
     for(int l=0; l<p.nLoci; ++l) {
         
@@ -96,10 +88,6 @@ void init_params(GlobalParams &p, GlobalOptions &opt) {
         
         p.eta[l] = (opt.FIXETA) ? p.eta[l].fill(opt.ETA[l])
                                   : p.beta[l] * randn<rowvec>(p.nAlleles[l]);
-        
-        double meanNoisyFreq = 0.5+rnorm(1,0,0.15)[0];
-        p.mu[l] = (opt.FIXMU) ? opt.MU[l] 
-                                : log(meanNoisyFreq / (1-meanNoisyFreq));
         
         p.X[l] =  randn<mat>(p.nRegions,p.nAlleles[l]);
     }
@@ -136,9 +124,6 @@ void init_proposal_sd(GlobalParams &p, GlobalOptions &opt) {
     p.eta_sd = rowvec(p.nLoci);
     p.eta_sd.fill(opt.ETASD);
     
-    p.mu_sd = rowvec(p.nLoci);       // NA   
-    p.mu_sd.fill(opt.MUSD);       // NA   
-
     p.xi_sd = rowvec(p.nLoci);
     p.xi_sd.fill(opt.XISD);    
 
@@ -163,9 +148,6 @@ void init_attempts(GlobalParams &p) {
     
     p.etaAttempt = zeros<urowvec>(p.nLoci);
     p.etaAccept  = zeros<urowvec>(p.nLoci);
-    
-    p.muAttempt = zeros<urowvec>(p.nLoci);
-    p.muAccept  = zeros<urowvec>(p.nLoci);
     
     p.betaAttempt = zeros<urowvec>(p.nLoci);
     p.betaAccept  = zeros<urowvec>(p.nLoci);

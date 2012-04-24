@@ -28,13 +28,6 @@ void outputAccepts(GlobalParams &p, GlobalOptions &opt) {
         cout << endl;
     }
     
-    if (!opt.FIXMU) {
-        cout << "mu     : ";
-        for (int l=0; l<p.nLoci; l++) 
-            cout << setprecision(3) << setw(5) << calc_accept_ratio(p.muAccept[l], p.muAttempt[l]) << " ";
-        cout << endl;
-    }
-    
     if (!opt.FIXXI) {
         cout << "xi     : ";
         for (int l=0; l<p.nLoci; l++) 
@@ -69,7 +62,8 @@ void outputAccepts(GlobalParams &p, GlobalOptions &opt) {
 
 
 void outputTuning(GlobalParams &p, GlobalOptions &opt) {
-
+    
+    cout << endl;
     cout << "Tuning Results:" << endl;
     cout << "=============================================" << endl;
 
@@ -90,14 +84,6 @@ void outputTuning(GlobalParams &p, GlobalOptions &opt) {
         cout << "ratio  : ";
         cout << "[" << setprecision(3) << setw(5) << opt.RATIOSD << "]";
         cout << " " << setprecision(3) << setw(5) << p.ratio_sd << endl;
-    }
-    
-    if (!opt.FIXMU) {
-        cout << "mu     : [" << setprecision(3) << setw(5) << opt.MUSD << "] ";
-        cout << "(" << setprecision(3) << setw(5) << mean(p.mu_sd) << ")";
-        for (int l=0; l<p.nLoci; l++) 
-            cout << " " << setprecision(3) << setw(5) << p.mu_sd(l) << " ";
-        cout << endl;
     }
     
     if (!opt.FIXXI) {

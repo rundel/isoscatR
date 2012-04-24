@@ -104,7 +104,7 @@ void update_Location(GlobalParams &p, GlobalOptions &opt) {
     for(int l=0; l<p.nLoci; l++) {
         mat newX = join_cols(p.X[l],randn<mat>(npred,p.nAlleles[l]));
     
-        mat mean = p.mu[l] * ones<mat>(npred,p.nAlleles[l]) + (ones<colvec>(npred) * (p.xi[l] * p.eta[l]));
+        mat mean = (ones<colvec>(npred) * (p.xi[l] * p.eta[l]));
         mat var = newL*newX;
         mat res = mean  + var(span(nknown,nPos-1), span::all);
         

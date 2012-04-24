@@ -65,7 +65,6 @@ void MCMCStep( GlobalParams &p, GlobalOptions &opt, bool burnin);
 void update_Beta(GlobalParams &p, GlobalOptions &opt);
 void update_X(GlobalParams &p, GlobalOptions &opt);
 void update_Alpha(GlobalParams &p, GlobalOptions &opt);
-void update_Mu(GlobalParams &p, GlobalOptions &opt);
 void update_Eta(GlobalParams &p, GlobalOptions &opt);
 void update_Xi(GlobalParams &p, GlobalOptions &opt);
 void update_anisotropy(GlobalParams &p, GlobalOptions &opt);

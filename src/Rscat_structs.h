@@ -23,7 +23,6 @@ struct GlobalParams {
     std::vector<arma::colvec>   sumCount;       // NA  Rx1
     std::vector<arma::mat>      allele_freq;    // NA  RxA[l]
     
-    std::vector<double>         mu;             // NA
     std::vector<arma::rowvec>   eta;            // NA  1xA[l]
     std::vector<double>         beta;           // 1
     std::vector<double>         xi;             // 1
