@@ -82,53 +82,7 @@ SEXP prec_sum(SEXP Rvec) {
     return (wrap(sum));
 }
 
-mat calc_rotation_mat(double angle) {
-    
-    mat res(2,2);
-    res(0,0) =  cos(angle);
-    res(0,1) = -sin(angle);
-    res(1,0) =  sin(angle);
-    res(1,1) =  cos(angle);
-    
-    return(res);
-}
 
-mat calc_stretch_mat(double ratio) {
-    
-    mat res(2,2);
-    res.eye();
-    res(1,1) = 1/ratio;
-    
-    return(res);
-}
-
-colvec calc_multinom_loglik( const mat theta, const mat count, const colvec sumCount) {
-    
-    //mat expTheta = exp(theta);
-    //mat invLogit = expTheta / (1+expTheta);
-    //mat sumInvLogit = sum(invLogit,1);
-    //
-    //return( sum(count % log(invLogit),1) - sumCount % log(sumInvLogit) );
-
-    return( sum(count % theta,1) - sumCount % log(sum(exp(theta),1)) );
-}
-
-mat calc_theta(const double &mu, const rowvec &eta, const double &xi, const mat &L, const mat &X) {
-    int nRegions = X.n_rows;
-
-    return( ones<colvec>(nRegions) * (mu + xi * eta) + L * X );
-}
-
-
-mat calc_f(const mat &theta) {
-    
-    int nAlleles = theta.n_cols;
-    
-    mat expTheta = exp(theta);
-    mat sumExpTheta = sum(expTheta,1) * ones<rowvec>(nAlleles);
-    
-    return( expTheta / sumExpTheta );
-}
 
 
 void parseOptions(SEXP sexpRopt, GlobalOptions &opt) {
