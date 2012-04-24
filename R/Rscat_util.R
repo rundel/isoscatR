@@ -36,7 +36,7 @@ normalize_raster = function(rast) {
 
 
 
-adjust_boundary = function(bound, locs, perc=0.2) {
+adjust_boundary = function(bound, locs, perc=0.2, poly=FALSE) {
     
     require(rgeos)
     
@@ -52,7 +52,12 @@ adjust_boundary = function(bound, locs, perc=0.2) {
     bbox = SpatialPolygons(list(Polygons(list(Polygon(coords)),ID="box")))
     boundsp = SpatialPolygons(list(Polygons(list(Polygon(bound)),ID="box")))
     
-    return( gIntersection(bbox,boundsp)@polygons[[1]]@Polygons[[1]]@coords )
+    adj = gIntersection(bbox,boundsp)
+    
+    if (poly)
+        return( adj )
+    else
+        return( adj@polygons[[1]]@Polygons[[1]]@coords )
      
 }
 
