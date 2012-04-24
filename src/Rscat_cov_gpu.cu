@@ -1,15 +1,3 @@
-/*__global__ void powered_exponential_kernel(double* dist, const int n, 
-                                           const double sigma2, const double phi, 
-                                           const double kappa, const double nugget) 
-{
-    const int col = threadIdx.x, row = blockIdx.x;
-    const int i = col+n*row;
-    
-    if (col < n && row < n) {
-        dist[i] = sigma2 * exp( -pow(dist[i] / phi, kappa) ) + nugget*(col==row);
-    }
-}*/
-
 __global__ void powered_exponential_kernel(double* dist, const int n, const int n2, 
                                            const double sigma2, const double phi, 
                                            const double kappa, const double nugget) 
@@ -32,13 +20,4 @@ void cov_powered_exponential_gpu(double* dist, const int n,
     int blocks = (n+n_threads-1)/n_threads;
     
     powered_exponential_kernel<<<blocks, n_threads>>>(dist, n, n2, sigma2, phi, kappa, nugget);
-    
-    //cudaThreadSynchronize();
-    //cudaThreadExit();
 }
-
-
-
-
-
-
