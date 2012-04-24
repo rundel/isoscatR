@@ -1,11 +1,14 @@
-AC_INIT([Rscat], 0.1.0)
-AC_CONFIG_AUX_DIR([tools])
+AC_INIT([Rscat], [0.1.0], [rundel@gmail.com])
+AC_CONFIG_AUX_DIR(config)
+
+AM_INIT_AUTOMAKE
 
 USE_MAGMA=yes
 
 #################### GCC Compiler ####################
 
-AC_PROG_CC(gcc)
+#AC_PROG_CC(gcc)
+AC_PROG_CXX
 
 #################### R stuff ####################
 
@@ -49,6 +52,13 @@ else
 	LIBS+=" ${R_LIB} ${RCPP_LIBS}"
 fi
 
+#################### Boost Stuff ####################
+
+BOOST_REQUIRE
+
+CPPFLAGS+=" ${BOOST_CPPFLAGS}"
+#LDFLAGS +=" ${BOOST_IOSTREAMS_LDFLAGS}"
+#LIBS    +=" ${BOOST_IOSTREAMS_LIBS}"
 
 #################### CUDA Toolkit ####################
 
