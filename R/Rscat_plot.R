@@ -72,15 +72,19 @@ generate_reports = function(m, dir="./", prefix = "", pts = 1000, ac.lag = 500, 
 }
 
 
-plot_mcmc = function(mcmc, file) {
+plot_mcmc = function(mcmc) {
     
     par(mfrow=c(4,2))
     for(i in 1:nvar(mcmc)) {
-        plot(mcmc[,i],density=FALSE,auto.layout=FALSE)
-        title(varnames(mcmc)[i])
-        plot_density(mcmc[,i])
+        plot_mcmc_var(mcmc,i)
     }
 
+}
+
+plot_mcmc_var = function(mcmc, var) {
+    plot(mcmc[,var],density=FALSE,auto.layout=FALSE)
+    title(varnames(mcmc)[var])
+    plot_density(mcmc[,var])
 }
 
 plot_locs = function(boundary_file,location_file,plot_bound = FALSE, plot_map = TRUE, map_color="black", adjust=FALSE, ...) {
@@ -178,7 +182,7 @@ plot_density = function (x, show.obs = TRUE, show.med = TRUE, bwf, main = "", co
         dens_list[[i]] = dens
     }
     
-    bws = paste(sapply(dens_list, function(x) { ifelse(class(x)=="density", formatC(x$bw), "") }),collapse=", ")
+    bws = paste(sapply(dens_list, function(x) { ifelse(class(x)=="density", formatC(x$bw,digits=2), "") }),collapse=", ")
     
     plot(0,0,type='n',ylab="",xlab = paste("N = ", niter(x), "  Bandwidths = (", bws, ")",sep=""),xlim=xlim,ylim=ylim,...)
     for (i in 1:length(x)) {
