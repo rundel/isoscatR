@@ -98,8 +98,6 @@ void parseOptions(SEXP sexpRopt, GlobalOptions &opt) {
 
     opt.LOCATE         = as<bool>(Ropt["LOCATE"]);
     opt.MAXCELL        = as<double>(Ropt["MAXCELL"]);
-    opt.CROSSVALIDATE  = as<bool>(Ropt["CROSSVALIDATE"]);
-    
     
     opt.RETURNFIT    = as<bool>(Ropt["RETURNFIT"]);
     opt.USEMATERN      = as<bool>(Ropt["USEMATERN"]);

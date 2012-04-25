@@ -1,3 +1,4 @@
+#include <boost/lexical_cast.hpp> 
 #include "Rscat.h"
 
 using namespace arma;
@@ -40,7 +41,7 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     //     << ", ymn=" << ymin << ", ymx=" << ymax << endl;
     
     int i = 0;
-    for(int xi = 0; xi < nx_step; xi++) {
+    for (int xi = 0; xi < nx_step; xi++) {
         for(int yi = 0; yi < ny_step; yi++) {
         
             double newX = (math::pi()/180.0) * (xmin + (xi*step) + step/2.0);
@@ -69,31 +70,29 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     
     p.predDist = calc_distance_mat(all_locs);
     
-    stringstream ss;
+    string file = opt.TMPDIR + "/pred_coords_" 
+	  			  + boost::lexical_cast<string>(p.chain_num) + ".mat";
     
-    if (opt.CROSSVALIDATE) {
-        ss << opt.TMPDIR << "/pred_coords"
-           << p.cvIndivs[0] << opt.FILESUFFIX
-           << ".mat";
-        
-        rand_pred_locs.save(ss.str(),raw_ascii);
-    } else if (opt.LOCATE && p.chain_num == 1) {
-        ss << opt.TMPDIR << "/pred_coords.mat";
-
-        rand_pred_locs.save(ss.str(),raw_ascii);
-    }
-        
+    rand_pred_locs.save(file, raw_ascii);
+    
+    rowvec x = trans(rand_pred_locs.col(0)),
+           y = trans(rand_pred_locs.col(1));
+    
+    for (int l=0; l<p.nLoci; l++) {
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            x.save( *(p.alfileGzStreams[l][j]), raw_ascii );
+            y.save( *(p.alfileGzStreams[l][j]), raw_ascii );
+        }
+    }    
 }
 
 void update_Location(GlobalParams &p, GlobalOptions &opt) {
     
-    bool CV = opt.CROSSVALIDATE;
-    
     int nPos = p.predDist.n_rows;
     int nknown = p.locs.n_rows;
     int npred = nPos - nknown;
-
-    mat ind_logprob = (CV) ? zeros<mat>(p.cvIndivs.size(),npred) : mat();
+	
+    mat ind_logprob = zeros<mat>(p.locate_indivs.size(), npred);
 
 #ifndef USEMAGMA
     mat newL = calc_L(p.alpha,p.predDist,opt.USEMATERN);
@@ -101,7 +100,10 @@ void update_Location(GlobalParams &p, GlobalOptions &opt) {
     mat newL = calc_L_gpu(p.alpha,p.predDist,opt.USEMATERN);
 #endif
 
-    for(int l=0; l<p.nLoci; l++) {
+    for (int l=0; l<p.nLoci; l++) {
+        
+
+        
         mat newX = join_cols(p.X[l],randn<mat>(npred,p.nAlleles[l]));
     
         mat mean = (ones<colvec>(npred) * (p.xi[l] * p.eta[l]));
@@ -110,35 +112,35 @@ void update_Location(GlobalParams &p, GlobalOptions &opt) {
         
         mat alleleProb = (1-opt.DELTA) * calc_f( res ) + opt.DELTA/p.nAlleles[l];
         
-        if (!CV) {
-            for(int j=0; j<p.nAlleles[l]; j++) {
-                rowvec curvec = trans(alleleProb.col(j));
-                curvec.save( *(p.alfileGzStreams[l][j]), raw_binary );
-            }
-        } else {
-            for(int i=0; i < p.cvIndivs.size(); i++) {
-                int al1 = p.cvGenotypes(2*i  , l);
-                int al2 = p.cvGenotypes(2*i+1, l);
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            rowvec curvec = trans(alleleProb.col(j));
+            curvec.save( *(p.alfileGzStreams[l][j]), raw_ascii );
+            //curvec.save( *(p.alfileGzStreams[l][j]), raw_binary );
+        }
+        
+        if (l > 0)
+            continue;
 
-                vec newP1,newP2;
+        for (int i=0; i < p.locate_indivs.size(); i++) {
+            int al1 = p.locate_genotypes(2*i  , l);
+            int al2 = p.locate_genotypes(2*i+1, l);
 
-                if (al1 < 0) newP1 = ones<vec>(npred);
-                else         newP1 = alleleProb.col(al1);
+            vec newP1,newP2;
 
-                if (al2 < 0) newP2 = ones<vec>(npred);
-                else         newP2 = alleleProb.col(al2);
+            if (al1 < 0) newP1 = ones<vec>(npred);
+            else         newP1 = alleleProb.col(al1);
 
-                if (al1 == al2) ind_logprob.row(i) += trans( log(opt.NULLPROB * newP1 + (1-opt.NULLPROB) * square(newP1)) );
-                else            ind_logprob.row(i) += trans( log((1-opt.NULLPROB) * (newP1 % newP2)) );
+            if (al2 < 0) newP2 = ones<vec>(npred);
+            else         newP2 = alleleProb.col(al2);
 
-            }
+            if (al1 == al2) ind_logprob.row(i) += trans( log(opt.NULLPROB * newP1 + (1-opt.NULLPROB) * square(newP1)) );
+            else            ind_logprob.row(i) += trans( log((1-opt.NULLPROB) * (newP1 % newP2)) );
         }
     }
     
-    if (CV) {
-        for(int i=0; i < p.cvIndivs.size(); i++) {
-            rowvec curvec = ind_logprob.row(i);
-            curvec.save( *(p.cvfileGzStreams[i]), raw_binary );
-        }
+    for(int i=0; i < p.locate_indivs.size(); i++) {
+        rowvec curvec = ind_logprob.row(i);
+        curvec.save( *(p.cvfileGzStreams[i]), raw_binary );
     }
+
 }

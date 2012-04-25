@@ -43,11 +43,13 @@ SEXP pow_exp_test(SEXP rX, SEXP ralpha, SEXP gpu, SEXP threads)
 
 
 
-arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern) {
+arma::mat calc_L_gpu( const std::vector<double> alpha, const arma::mat& dist, bool usematern) {
     
-    if (usematern)
-        return calc_L(alpha, dist, usematern);
-    
+    if (usematern) {
+        arma::mat S = calc_Sigma(alpha, dist, usematern);
+        return calc_L(S);
+    }
+        
     int n = dist.n_rows, n2 = n*n, info;
     double* d_B;
     
@@ -64,6 +66,12 @@ arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern
         throw( std::exception() );
     } else if (info > 0) {
         std::cout << "Error: leading minor of order " << info << " is not positive definite\n";
+        
+        std::cout << "alpha[0]: " << alpha[0] << "\n"
+                  << "alpha[1]: " << alpha[1] << "\n"
+                  << "alpha[2]: " << alpha[2] << "\n"
+                  << "alpha[3]: " << alpha[3] << "\n";
+        
         throw( std::exception() );
     }
     
@@ -161,7 +169,6 @@ void checkCublasError(const char *msg)
 {
     cublasStatus err = cublasGetError();
     if(err != CUBLAS_STATUS_SUCCESS) {
-        std::stringstream s;
         std::cout << "Error: cuBLAS " << msg << " : " << cublasGetErrorString(err);
         throw( std::exception() );
     }

@@ -1,4 +1,5 @@
 #include <Rmath.h>
+#include <boost/lexical_cast.hpp>
 #include "Rscat.h"
 
 using namespace arma;
@@ -44,7 +45,8 @@ void init_params(GlobalParams &p, GlobalOptions &opt) {
     
     p.X.resize(p.nLoci);              // NA  RxA[l]
     p.theta.resize(p.nLoci);          // NA  RxA[l]
-    p.logLik.resize(p.nLoci);         // NA  Rx1
+    p.logLik_theta.resize(p.nLoci);         // NA  Rx1
+    p.logLik_f.resize(p.nLoci);         // NA  Rx1
     
     init_proposal_sd(p,opt);
     calc_counts(p,opt);
@@ -52,9 +54,16 @@ void init_params(GlobalParams &p, GlobalOptions &opt) {
     p.anisoAngle = opt.ANGLE;
     p.anisoRatio = opt.RATIO;
     
-    for(int i=0; i<4; i++) {
-        p.alpha[i] = (opt.FIXALPHA[i]) ? opt.ALPHA[i] : runif(1,opt.ALPHAMIN[i],opt.ALPHAMAX[i])[0]; 
-    }
+    //for(int i=0; i<4; i++) {
+    //    p.alpha[i] = (opt.FIXALPHA[i]) ? opt.ALPHA[i] : runif(1,opt.ALPHAMIN[i],opt.ALPHAMAX[i])[0]; 
+    //}
+    
+    
+    p.alpha[0] = (opt.FIXALPHA[0]) ? opt.ALPHA[0] : rgamma(1,2,1)[0];
+    p.alpha[1] = (opt.FIXALPHA[1]) ? opt.ALPHA[1] : runif(1,opt.ALPHAMIN[1],500)[0]; 
+    p.alpha[2] = (opt.FIXALPHA[2]) ? opt.ALPHA[2] : runif(1,opt.ALPHAMIN[2],opt.ALPHAMAX[2])[0]; 
+    p.alpha[3] = (opt.FIXALPHA[3]) ? opt.ALPHA[3] : rgamma(1,2,0.2)[0];
+    
     
     if (opt.FIXXI) {
         if (opt.XI.size() == 1)
@@ -104,11 +113,19 @@ void calc_params(GlobalParams &p, GlobalOptions &opt) {
     p.locsTrans = p.locs * p.anisoAngleMat * p.anisoRatioMat;
     
     p.dist = calc_distance_mat(p.locsTrans);
-    p.L    = calc_L(p.alpha, p.dist, opt.USEMATERN);
+    p.S    = calc_Sigma(p.alpha, p.dist, opt.USEMATERN);
+    p.L    = calc_L(p.S);
+    p.Sdet = det(p.S);
+    
+    mat Linv = inv( trimatl(p.L) );
+    p.Sinv = Linv.t() * Linv;
 
     for(int l=0; l<p.nLoci; ++l) {
-        p.theta[l] = calc_theta(p.mu[l], p.eta[l], p.xi[l], p.L, p.X[l]); //ones<colvec>(p.nRegions) * p.mu[l] + p.L * p.X[l];
-        p.logLik[l] = calc_multinom_loglik(p.theta[l], p.count[l], p.sumCount[l]);
+        mat mean = ones<colvec>(p.nRegions) * (p.xi[l] * p.eta[l]);
+        p.theta[l] = mean +  p.L * p.X[l];
+        
+        p.logLik_theta[l] = calc_multivar_normal_loglik(p.theta[l], mean, p.Sinv, p.Sdet);
+        p.logLik_f[l] = calc_multinomial_loglik(p.theta[l], p.count[l], p.sumCount[l]);
     }
 }
 
@@ -166,51 +183,19 @@ void init_attempts(GlobalParams &p) {
 }
 
 
-void open_allelefiles(GlobalParams &p, GlobalOptions &opt) {
-    
-    p.alfileStreams.resize(p.nLoci);
-    p.alfileGzStreams.resize(p.nLoci);
-
-    for(int l=0; l<p.nLoci; l++) {
-        
-        p.alfileStreams[l].resize(p.nAlleles[l]);
-        p.alfileGzStreams[l].resize(p.nAlleles[l]);
-        
-        for(int j=0; j<p.nAlleles[l]; j++) {
-            stringstream ss;
-            ss << opt.TMPDIR << "/Al" << l+1 << "-" << j+1 << opt.FILESUFFIX << ".gz";
-        
-            p.alfileStreams[l][j] = new ofstream(ss.str().c_str(), ios_base::binary);
-        
-            p.alfileGzStreams[l][j] = new boost::iostreams::filtering_ostream;
-            p.alfileGzStreams[l][j]->push( boost::iostreams::gzip_compressor() );
-            p.alfileGzStreams[l][j]->push( *(p.alfileStreams[l][j]) );
-        }
-    }
-}
-
-void close_allelefiles(GlobalParams &p, GlobalOptions &opt) {
-    
-    for(int l=0; l<p.nLoci; l++) {
-        for(int j=0; j<p.nAlleles[l]; j++) {
-            delete p.alfileGzStreams[l][j];  
-            delete p.alfileStreams[l][j];
-        }
-    }
-}
-
 
 void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
     
-    p.cvfileStreams.resize(p.cvIndivs.size());
-    p.cvfileGzStreams.resize(p.cvIndivs.size());
+    p.cvfileStreams.resize(p.locate_indivs.size());
+    p.cvfileGzStreams.resize(p.locate_indivs.size());
 
-    for(int l=0; l<p.cvIndivs.size(); l++) {
+    for(int l=0; l<p.locate_indivs.size(); l++) {
         
-        stringstream ss;
-        ss << opt.TMPDIR << "/CV_Ind" << p.cvIndivs[l] << opt.FILESUFFIX << ".gz";
+        string file = opt.TMPDIR + "/CV_Ind" 
+                      + boost::lexical_cast<string>(p.locate_indivs[l]) + "_"
+                      + boost::lexical_cast<string>(p.chain_num) + ".gz";
         
-        p.cvfileStreams[l] = new ofstream(ss.str().c_str(), ios_base::binary);
+        p.cvfileStreams[l] = new ofstream(file.c_str(), ios_base::binary);
         
         p.cvfileGzStreams[l] = new boost::iostreams::filtering_ostream;
         p.cvfileGzStreams[l]->push( boost::iostreams::gzip_compressor() );
@@ -221,8 +206,44 @@ void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
 
 void close_cvfiles(GlobalParams &p, GlobalOptions &opt) {
     
-    for(int l=0; l<p.cvIndivs.size(); l++) {
+    for(int l=0; l<p.locate_indivs.size(); l++) {
         delete p.cvfileGzStreams[l];  
         delete p.cvfileStreams[l];
+    }
+}
+
+
+void open_allelefiles(GlobalParams &p, GlobalOptions &opt) {
+    
+    p.alfileStreams.resize(p.nLoci);
+    p.alfileGzStreams.resize(p.nLoci);
+ 
+    for(int l=0; l<p.nLoci; l++) {
+        
+        p.alfileStreams[l].resize(p.nAlleles[l]);
+        p.alfileGzStreams[l].resize(p.nAlleles[l]);
+        
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            string file = opt.TMPDIR + "/Al" 
+                          + boost::lexical_cast<string>(l+1) + "-"
+                          + boost::lexical_cast<string>(j+1) + "_"
+                          + boost::lexical_cast<string>(p.chain_num) + ".gz";
+        
+            p.alfileStreams[l][j] = new ofstream(file.c_str(), ios_base::binary);
+        
+            p.alfileGzStreams[l][j] = new boost::iostreams::filtering_ostream;
+            p.alfileGzStreams[l][j]->push( boost::iostreams::gzip_compressor() );
+            p.alfileGzStreams[l][j]->push( *(p.alfileStreams[l][j]) );
+        }
+    }
+}
+ 
+void close_allelefiles(GlobalParams &p, GlobalOptions &opt) {
+    
+    for(int l=0; l<p.nLoci; l++) {
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            delete p.alfileGzStreams[l][j];  
+            delete p.alfileStreams[l][j];
+        }
     }
 }

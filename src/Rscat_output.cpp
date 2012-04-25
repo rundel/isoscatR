@@ -68,7 +68,7 @@ void outputTuning(GlobalParams &p, GlobalOptions &opt) {
     cout << "=============================================" << endl;
 
     
-    for (int l=0; l<p.alpha.size(); l++) {
+    for (int l=0; l<opt.ALPHASD.size(); l++) {
         cout << "alpha" << l << " : "; 
         cout << "[" << setprecision(3) << setw(5) << opt.ALPHASD(l) << "]";
         cout << " " << setprecision(3) << setw(5) << p.alpha_sd(l) << endl;

@@ -15,7 +15,6 @@ scat_options = list( VERBOSE = FALSE,
                 
                 ADAPT = FALSE,
                 TUNEINTERVAL = 1000,
-                CROSSVALIDATE = FALSE,
                 
                 RETURNFIT = FALSE,
                 USEMATERN = FALSE,

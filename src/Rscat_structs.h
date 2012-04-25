@@ -12,8 +12,8 @@ struct GlobalParams {
     Rcpp::IntegerVector         nAlleles;
     
     arma::imat                  genotypes;
-    Rcpp::IntegerVector         cvIndivs;
-    arma::imat                  cvGenotypes;
+    Rcpp::IntegerVector         locate_indivs;
+    arma::imat                  locate_genotypes;
     
     Rcpp::IntegerVector         indRegion;
     
@@ -41,8 +41,14 @@ struct GlobalParams {
     
     arma::mat                   dist;           // RxR
     arma::mat                   L;              // RxR
+    arma::mat                   S;              // RxR
+    arma::mat                   Sinv;           // RxR
+    double                      Sdet;
     
-    std::vector<arma::colvec>   logLik;         // NA  Rx1
+    std::vector<double>         logLik_theta;   // NA  RxA[l]
+    std::vector<double>         logLik_f;       // NA  RxA[l]
+    
+    
 
     arma::mat                   locs;           // Rx2
     arma::mat                   locsTrans;      // Rx2
@@ -82,12 +88,11 @@ struct GlobalParams {
     
     unsigned int                 ratioAttempt;
     unsigned int                 ratioAccept;
-
-    std::vector<std::vector<boost::iostreams::filtering_ostream*> > alfileGzStreams;
-    std::vector<std::vector<std::ofstream*> > alfileStreams;
     
     std::vector<boost::iostreams::filtering_ostream*> cvfileGzStreams;
     std::vector<std::ofstream*> cvfileStreams;
+    std::vector<std::vector<boost::iostreams::filtering_ostream*> > alfileGzStreams;
+    std::vector<std::vector<std::ofstream*> > alfileStreams;
 };
 
 struct GlobalOptions {
@@ -104,9 +109,7 @@ struct GlobalOptions {
     
     bool LOCATE;
     double MAXCELL;
-    
-    bool CROSSVALIDATE;
-    
+        
     double PSEUDOCOUNT;
     
     Rcpp::LogicalVector FIXALPHA;

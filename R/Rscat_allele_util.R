@@ -1,13 +1,15 @@
-find_ind_file = function(root, ind, chain="") {
-    d = dir(root, "Loc",full.names=TRUE)
-    if (length(d) != 0) {
-        file = dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""),full.names=TRUE)
-    } else {
-        d = dir(root,paste("Ind",ind,sep=""),full.names=TRUE)
-        file = dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE)
-    }
+find_ind_file = function(root, ind, chain) {
     
-    return( file )
+    d = dir(root, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE)
+    if (length(d) != 0)
+        return( d )
+    
+    d = dir(root, "Loc",full.names=TRUE)
+    if (length(d) != 0)
+        return( dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""),full.names=TRUE) )
+    
+    d = dir(root,paste("Ind",ind,sep=""),full.names=TRUE)
+    return( dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE) )
 }
 
 calc_step = function(locs) {
@@ -63,7 +65,7 @@ allele_raster_from_file = function(root, ind = NULL, chain = 1, func = median) {
     }
     
     file_dir = dirname(file)
-    pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]+_",chain,".mat",sep=""), full.names=TRUE)
+    pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]*_",chain,".mat",sep=""), full.names=TRUE)
     stopifnot(length(pred_file)==1)
     
     pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
@@ -99,7 +101,7 @@ allele_brick_from_file = function(root, ind = NULL, chain = 1) {
     }
     
     file_dir = dirname(file)
-    pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]+_",chain,".mat",sep=""), full.names=TRUE)
+    pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]*_",chain,".mat",sep=""), full.names=TRUE)
     stopifnot(length(pred_file)==1)
     
     pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi

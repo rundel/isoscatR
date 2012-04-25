@@ -20,7 +20,7 @@
 #include <cublas.h>
 #include <cuda.h>
 
-arma::mat calc_L_gpu( std::vector<double> alpha, arma::mat& dist, bool usematern);
+arma::mat calc_L_gpu( const std::vector<double> alpha, const arma::mat& dist, bool usematern);
 
 void cov_powered_exponential_gpu(double* dist, int n, double sigma2, double phi, double kappa, double nugget, int n_threads);
 RcppExport SEXP pow_exp_test(SEXP rX, SEXP ralpha, SEXP gpu, SEXP threads);
@@ -81,10 +81,11 @@ void outputTuning(GlobalParams &p, GlobalOptions &opt);
 
 // cov Functions
 
-arma::mat calc_L( std::vector<double> alpha, arma::mat& dist, bool usematern);
-arma::mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, arma::mat& dist);
-arma::mat cov_matern( double sigma2, double phi, double nu, double nugget, arma::mat& dist, bool uselog);
-arma::mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, arma::vec& dist, bool uselog);
+arma::mat calc_Sigma(const std::vector<double> alpha, const arma::mat& dist, bool usematern);
+arma::mat calc_L( const arma::mat &Sigma );
+arma::mat cov_powered_exponential( double sigma2, double phi, double kappa, double nugget, const arma::mat& dist);
+arma::mat cov_matern( double sigma2, double phi, double nu, double nugget, const arma::mat& dist, bool uselog);
+arma::mat cov_matern_vec( double sigma2, double phi, double nu, double nugget, const arma::vec& dist, bool uselog);
 RcppExport SEXP R_cov_matern( SEXP rsigma2, SEXP rphi, SEXP rnu, SEXP rnugget, SEXP rdist, SEXP distmat, SEXP ruselog);
 
 
@@ -100,10 +101,12 @@ double calc_accept_ratio(unsigned int accept, unsigned int attempt);
 arma::mat calc_rotation_mat(double angle);
 arma::mat calc_stretch_mat(double ratio);
 
-arma::colvec calc_LogLik(arma::mat theta, arma::colvec sumExpTheta, arma::mat count, arma::colvec sumCount);
-arma::colvec calc_multinom_loglik( const arma::mat theta, const arma::mat count, arma::colvec sumCount);
+//arma::colvec calc_LogLik(arma::mat theta, arma::colvec sumExpTheta, arma::mat count, arma::colvec sumCount);
+double calc_multinomial_loglik( const arma::mat &theta, const arma::mat &count, const arma::colvec &sumCount);
+double calc_multivar_normal_loglik(const arma::mat &x, const arma::mat &mu, const arma::mat &sigmaInv, double sigmaDet);
 
-arma::mat calc_theta(const double &mu, const arma::rowvec &eta, const double &xi, const arma::mat &L, const arma::mat &X);
+
+
 arma::mat calc_f(const arma::mat &theta);
 
 arma::mat calc_distance_mat(arma::mat const &m);
@@ -129,8 +132,8 @@ RcppExport SEXP mcmc_main(SEXP rChain,
               SEXP rNiter,
               SEXP rNthin,
               SEXP rNburn,
-              SEXP rCVIndivs,
-              SEXP rCVGenotypes,
+              SEXP rLocIndivs,
+              SEXP rLocGenotypes,
               SEXP rOpt );
 
 

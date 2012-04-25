@@ -1,6 +1,6 @@
 MCMC_Chains <- function(genofile, locfile, boundfile, options=list(), 
                         nChains=2, nIter=1000, nThin=50, nBurn=500, adjbound=TRUE, 
-                        cv_indivs=c(), cv_locs=c()) {
+                        locate_indivs=c(), cv_locs=c()) {
     
     #res = foreach(i = 1:nChains) %do% {
     #    
@@ -8,7 +8,7 @@ MCMC_Chains <- function(genofile, locfile, boundfile, options=list(),
     #    
     #    z= MCMC_Main(genofile, locfile, boundfile, options, 
     #                 nIter, nThin, nBurn, adjbound, 
-    #                 cv_indivs, cv_locs, i)
+    #                 locate_indivs, cv_locs, i)
     #    
     #    return(z)
     #}
@@ -20,7 +20,7 @@ MCMC_Chains <- function(genofile, locfile, boundfile, options=list(),
         
         z= MCMC_Main(genofile, locfile, boundfile, options, 
                      nIter, nThin, nBurn, adjbound, 
-                     cv_indivs, cv_locs, i)
+                     locate_indivs, cv_locs, i)
         
         res[[i]] = z
     }
@@ -46,7 +46,7 @@ MCMC_Chains <- function(genofile, locfile, boundfile, options=list(),
 
 MCMC_Main <- function(genofile, locfile, boundfile, options=list(), 
                       nIter=1000, nThin=50, nBurn=500, adjbound=TRUE, 
-                      cv_indivs=c(), cv_locs=c(), chain=1) {
+                      locate_indivs=c(), cv_locs=c(), chain=1) {
     
     run_opts = scat_options
     for(n in names(options)) {
@@ -75,24 +75,24 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
         bound = adjust_boundary(bound, locs)
     }
     
-    nIndivs = nrow(geno)
+    nIndivs = nrow(geno)/2
     nLocs = nrow(locs)
     if (length(cv_locs) != 0) {
         cv_locs = unique(cv_locs)
         stopifnot(all(cv_locs %in% 1:nLocs))
         
-        cv_indivs = c(cv_indivs, which(indivlocs %in% cv_locs) )
+        locate_indivs = c(locate_indivs, which(indivlocs %in% cv_locs) )
     }
     
-    cv_geno = numeric()
-    if (length(cv_indivs) != 0) {
-        cv_indivs = sort(unique(cv_indivs))
-        stopifnot(all(cv_indivs %in% 1:nIndivs))
+    locate_geno = numeric()
+    if (length(locate_indivs) != 0) {
+        locate_indivs = sort(unique(locate_indivs))
+        stopifnot(all(locate_indivs %in% 1:nIndivs))
         
-        rows = sort(c(2*cv_indivs-1,2*cv_indivs))
-        cv_geno = geno[rows,]
+        rows = sort(c(2*locate_indivs-1,2*locate_indivs))
+        locate_geno = geno[rows,]
         geno = geno[-rows,]
-        indivlocs = indivlocs[-cv_indivs]
+        indivlocs = indivlocs[-locate_indivs]
         
         # if we remove all indivs from a loc drop that loc
         locs = locs[which( (1:nLocs %in% unique(indivlocs)) ),]
@@ -104,19 +104,20 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
             i=i+1
         }
         indivlocs = newid
-        
-        run_opts["CROSSVALIDATE"] = TRUE
-        run_opts["LOCATE"] = FALSE
     }
+
+    if (!file.exists(run_opts[["TMPDIR"]]))
+        dir.create(run_opts[["TMPDIR"]], recursive=TRUE)
     
-    if (run_opts["CROSSVALIDATE"] == TRUE | run_opts["LOCATE"] == TRUE) {
-        # if we are locating we need to create a directory for the tmp data
-        if (!file.exists(run_opts[["TMPDIR"]]))
-            dir.create(run_opts[["TMPDIR"]], recursive=TRUE)
+    if (run_opts[["LOCATE"]]) {
+        if (length(locate_indivs) == 0) {
+            locate_indivs = 1:nIndivs
+            locate_geno = geno
+        }
     }
 
     
-    if (run_opts$PERMUTE) {
+    if (run_opts[["PERMUTE"]]) {
         n = nrow(locs)
         perm = sample(1:n,n)
         
@@ -139,8 +140,8 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
               nIter,
               nThin,
               nBurn,
-              cv_indivs,
-              cv_geno,
+              locate_indivs,
+              locate_geno,
               run_opts,
               PACKAGE = "Rscat" )
   
