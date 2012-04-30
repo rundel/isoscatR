@@ -41,10 +41,6 @@ double calc_multivar_normal_loglik(const mat &x, const mat &mu, const mat &sigma
     return res;
 }
 
-
-
-
-
 mat calc_f(const mat &theta) {
     
     int nAlleles = theta.n_cols;

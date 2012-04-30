@@ -71,7 +71,7 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     p.predDist = calc_distance_mat(all_locs);
     
     string file = opt.TMPDIR + "/pred_coords_" 
-	  			  + boost::lexical_cast<string>(p.chain_num) + ".mat";
+                    + boost::lexical_cast<string>(p.chain_num) + ".mat";
     
     rand_pred_locs.save(file, raw_ascii);
     
@@ -88,10 +88,10 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
 
 void update_Location(GlobalParams &p, GlobalOptions &opt) {
     
-    int nPos = p.predDist.n_rows;
+    int npos = p.predDist.n_rows;
     int nknown = p.locs.n_rows;
-    int npred = nPos - nknown;
-	
+    int npred = npos - nknown;
+    
     mat ind_logprob = zeros<mat>(p.locate_indivs.size(), npred);
 
 #ifndef USEMAGMA
