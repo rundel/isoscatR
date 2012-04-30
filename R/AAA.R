@@ -42,10 +42,6 @@ scat_options = list( VERBOSE = FALSE,
                 XISD = 1,
                 SIGMAXI = 10,
                 
-                FIXMU = FALSE,
-                MU = 0,
-                MUSD = 1.1,
-                
                 FIXETA = FALSE,
                 ETA = 0,
                 ETASD = 1.1,
