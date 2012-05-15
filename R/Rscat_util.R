@@ -62,24 +62,6 @@ adjust_boundary = function(bound, locs, perc=0.2, poly=FALSE) {
 }
 
 
-
-prec_sum = function(..., na.rm=TRUE) {
-    
-    vec = unlist(list(...))
-
-    if (length(vec)==0)
-        return(0)
-
-    if (na.rm==FALSE & any(is.na(vec)))
-        return(NA)
-    
-    if (na.rm==TRUE)
-        vec = vec[!is.na(vec)]
-        
-    return (.Call("prec_sum",vec,PACKAGE="Rscat"))
-
-}
-
 calc_distance = function(x,y) {
     
     if(missing(y)) {
@@ -112,7 +94,7 @@ calc_distance_to_point = function(px,py,x,y) {
     stopifnot(is.numeric(x))
     stopifnot(is.numeric(y))
     
-    res = .Call("R_calc_distance_to_point", px, py, x, y, PACKAGE = "Rscat" )
+    res = .Call("R_great_circle_dist_point", px, py, x, y, PACKAGE = "Rscat" )
     
     return(res)
 }

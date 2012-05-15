@@ -52,7 +52,7 @@ scat_options = list( VERBOSE = FALSE,
                 BETASD = 0.5,
                 SIGMABETA = 5,
                 
-                XSD = 2.1,
+                THETASD = 2.1,
                 
                 LOCALSD = 0.225,
                 GLOBALSD = 0.225,

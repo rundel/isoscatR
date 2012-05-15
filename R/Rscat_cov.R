@@ -29,7 +29,7 @@ emp_variog = function(genofile, locfile,transform) {
         }
     }
     
-    dist = calc_distance_mat(locs)
+    dist = distance_mat(locs)
     ndists = choose(nrow(dist),2)
     
     variog = list(dist = rep(NA,ndists), data=matrix(NA,length(nAllele),ndists))
