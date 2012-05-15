@@ -1,9 +1,13 @@
-#include "Rscat.h"
+#include <RcppArmadillo.h>
+#include <boost/lexical_cast.hpp>
 
-using namespace arma;
-using namespace Rcpp;
-using namespace std;
+#include "Rscat_structs.h"
+#include "Rscat_init.h"
+#include "Rscat_mcmc.h"
+#include "Rscat_util.h"
+#include "Rscat_locate.h"
 
+RcppExport
 SEXP mcmc_main(SEXP rChain,
                SEXP rBoundary,   // px2 matrix
                SEXP rLocations,  // Rx2 matrix
@@ -17,39 +21,34 @@ SEXP mcmc_main(SEXP rChain,
                SEXP rLocGenotypes,
                SEXP rOpt ) {
     
-    RNGScope scope;
+    Rcpp::RNGScope scope;
     
     GlobalParams p;
     GlobalOptions opt;
     
     parseOptions(rOpt,opt);
     
-    p.chain_num = as<int>(rChain);
+    p.chain_num = Rcpp::as<int>(rChain);
     
-    int Niter = as<int>(rNiter);
-    int Nthin = as<int>(rNthin);
-    int Nburn = as<int>(rNburn);
+    int Niter = Rcpp::as<int>(rNiter);
+    int Nthin = Rcpp::as<int>(rNthin);
+    int Nburn = Rcpp::as<int>(rNburn);
     
-    p.indRegion = IntegerVector(rIndRegion);
+    p.indRegion = Rcpp::IntegerVector(rIndRegion);
     
-    
-    IntegerMatrix tG(rGenotypes);  
-    NumericMatrix tB(rBoundary);
-    NumericMatrix tL(rLocations);
-    p.genotypes = imat(tG.begin(),tG.nrow(),tG.ncol(),false);
-    p.boundary = mat(tB.begin(),tB.nrow(),tB.ncol(),false);
-    p.locs = mat(tL.begin(),tL.nrow(),tL.ncol(),false);
+    p.genotypes = Rcpp::as<arma::imat>(rGenotypes);
+    p.boundary  = Rcpp::as<arma::mat>(rBoundary);
+    p.locs      = Rcpp::as<arma::mat>(rLocations);
     
     
-    p.nAlleles = IntegerVector(rNalleles);
+    p.nAlleles = Rcpp::IntegerVector(rNalleles);
     p.nRegions = p.locs.n_rows;
     p.nLoci = p.genotypes.n_cols;
     p.nInd = p.genotypes.n_rows/2;
     
     init_params(p,opt);
     
-    
-    cout << "Chain " << p.chain_num << ":\n";
+    std::cout << "Chain " << p.chain_num << ":\n";
     MCMCLoop(p, opt, Nburn, Nthin, true, true);
     if (opt.VERBOSE) {
         outputTuning(p, opt);
@@ -60,31 +59,48 @@ SEXP mcmc_main(SEXP rChain,
         outputAccepts(p, opt);
     }
     
-    
     init_attempts(p);
     
-	if (opt.LOCATE) {
-        p.locate_indivs = IntegerVector(rLocIndivs);
-        
-        IntegerMatrix tmp(rLocGenotypes);  
-        p.locate_genotypes = imat(tmp.begin(),tmp.nrow(),tmp.ncol(),false);   
+    if (opt.LOCATE) {
+        p.locate_indivs = Rcpp::IntegerVector(rLocIndivs);
+        p.locate_genotypes = Rcpp::as<arma::imat>(rLocGenotypes);
 
-        open_cvfiles(p, opt);
-        open_allelefiles(p, opt);
+
+        //p.alfileStreams.resize(p.nLoci);
+        //for(int l=0; l<p.locate_indivs.size(); l++) {
+        //
+        //    std::string file = opt.TMPDIR + "/CV_Ind" 
+        //                     + boost::lexical_cast<std::string>(p.locate_indivs[l]) + "_"
+        //                     + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+        //    
+        //    p.cvfileStreams.push_back( gzip_stream(file) );
+        //    
+        //    for(int j=0; j<p.nAlleles[l]; j++) {
+        //        std::string al_file = opt.TMPDIR + "/Al" 
+        //                            + boost::lexical_cast<std::string>(l+1) + "-"
+        //                            + boost::lexical_cast<std::string>(j+1) + "_"
+        //                            + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+        //
+        //        p.alfileStreams[l].push_back( gzip_stream(al_file) );
+        //    }
+        //}
+        
+        open_cvfiles(p,opt);
+        open_allelefiles(p,opt);
         init_locate(p, opt);
     }
     
-    List res = MCMCLoop(p, opt, Niter, Nthin, false, false);
+    Rcpp::List res = MCMCLoop(p, opt, Niter, Nthin, false, false);
     
     if (opt.VERBOSE) {
-        cout << "Chain " << p.chain_num << ":" << endl;
+        std::cout << "Chain " << p.chain_num << ":" << std::endl;
         outputAccepts(p, opt);
-        cout << endl << endl;
+        std::cout << std::endl << std::endl;
     }
-    
+
     if (opt.LOCATE) {
-        close_cvfiles(p, opt);
-        close_allelefiles(p, opt);
+          close_cvfiles(p, opt);
+          close_allelefiles(p, opt);
     }
     
     return(res);

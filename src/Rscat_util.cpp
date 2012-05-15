@@ -1,157 +1,242 @@
-#include "Rscat.h"
+#include <RcppArmadillo.h>
+#include <iostream>
+#include <fstream>
+#include <boost/lexical_cast.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 
-using namespace arma;
-using namespace Rcpp;
-using namespace std;
+#include "Rscat_util.h"
 
-SEXP read_allele_file(SEXP Rfile) {
+void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
     
-    string file_name = as<string>(Rfile);
-    
-    ifstream filestream(file_name.c_str(), ios_base::in | ios_base::binary);
-    
-    
-    if (filestream.is_open()) {
-        
-        boost::iostreams::filtering_istream f;
-        f.push( boost::iostreams::gzip_decompressor() );
-        f.push( filestream );
-        
-        vector<char> data;
-        boost::iostreams::copy(f, boost::iostreams::back_inserter(data));
-        
-        vec x( (double *) &data[0], data.size() / sizeof(double), false);
-        
-        return(wrap(x));
+    p.cvfileStreams.resize(p.locate_indivs.size());
+    p.cvfileGzStreams.resize(p.locate_indivs.size());
 
-    } else {
-        cout << "Unable to open allele file (" << file_name <<")" << endl;
-        return(R_NilValue);
+    for(int l=0; l<p.locate_indivs.size(); l++) {
+        
+        std::string file = opt.TMPDIR + "/CV_Ind" 
+                      + boost::lexical_cast<std::string>(p.locate_indivs[l]) + "_"
+                      + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+        
+        p.cvfileStreams[l] = new std::ofstream(file.c_str(), std::ios_base::binary);
+        
+        p.cvfileGzStreams[l] = new boost::iostreams::filtering_ostream;
+        p.cvfileGzStreams[l]->push( boost::iostreams::gzip_compressor() );
+        p.cvfileGzStreams[l]->push( *(p.cvfileStreams[l]) );
+    
+    }
+}
+
+void close_cvfiles(GlobalParams &p, GlobalOptions &opt) {
+    
+    for(int l=0; l<p.locate_indivs.size(); l++) {
+        delete p.cvfileGzStreams[l];  
+        delete p.cvfileStreams[l];
     }
 }
 
 
-SEXP prec_sum(SEXP Rvec) {
-
-    // Full precision summation using multiple floats for intermediate values
-    // Rounded x+y stored in hi with the round-off stored in lo.  Together
-    // hi+lo are exactly equal to x+y.  The inner loop applies hi/lo summation
-    // to each partial so that the list of partial sums remains exact.
-    // Depends on IEEE-754 arithmetic guarantees.  See proof of correctness at:
-    // www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps
-
-    NumericVector vec = as<NumericVector>(Rvec);
-
-    if (vec.size() == 1)
-        return(Rvec);
-
-    vector<double> partials(1,vec[0]);               // sorted, non-overlapping partial sums
-    int k;
-
-    for (int i=1; i<vec.size(); i++) {
-        double x = vec[i];
-        k = 0;
-
-        for (int j=0; j<partials.size(); j++) {
-
-            double y = partials[j];
-
-            if (abs(x) < abs(y)) {
-                double tmp=y;
-                y=x;
-                x=tmp;
-            }
-
-            double hi = x + y;
-            double lo = y - (hi - x);
-            if (lo != 0.0) {
-                partials[k] = lo;
-                k++;
-            }
-            x = hi;
-        }
-
-        partials.resize(k+1);
-        partials[k] = x;
-    }
-
-    double sum = 0.0;
-    for (int j=0; j<partials.size(); j++) 
-        sum += partials[j];
-
-    return (wrap(sum));
-}
-
-
-
-
-void parseOptions(SEXP sexpRopt, GlobalOptions &opt) {
-    List Ropt(sexpRopt);
+void open_allelefiles(GlobalParams &p, GlobalOptions &opt) {
     
-    opt.VERBOSE        = as<bool>(Ropt["VERBOSE"]);
-    
-    opt.TMPDIR         = as<string>(Ropt["TMPDIR"]);
-    opt.FILESUFFIX     = as<string>(Ropt["FILESUFFIX"]);
-    
-    opt.ADAPT          = as<bool>(Ropt["ADAPT"]);
-    opt.TUNEINTERVAL    = as<int>(Ropt["TUNEINTERVAL"]);
-
-    opt.LOCATE         = as<bool>(Ropt["LOCATE"]);
-    opt.MAXCELL        = as<double>(Ropt["MAXCELL"]);
-    
-    opt.RETURNFIT    = as<bool>(Ropt["RETURNFIT"]);
-    opt.USEMATERN      = as<bool>(Ropt["USEMATERN"]);
+    p.alfileStreams.resize(p.nLoci);
+    p.alfileGzStreams.resize(p.nLoci);
  
-    opt.PSEUDOCOUNT    = as<double>(Ropt["PSEUDOCOUNT"]);
+    for(int l=0; l<p.nLoci; l++) {
+        
+        p.alfileStreams[l].resize(p.nAlleles[l]);
+        p.alfileGzStreams[l].resize(p.nAlleles[l]);
+        
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            std::string file = opt.TMPDIR + "/Al" 
+                                + boost::lexical_cast<std::string>(l+1) + "-"
+                                + boost::lexical_cast<std::string>(j+1) + "_"
+                                + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+        
+            p.alfileStreams[l][j] = new std::ofstream(file.c_str(), std::ios_base::binary);
+        
+            p.alfileGzStreams[l][j] = new boost::iostreams::filtering_ostream;
+            p.alfileGzStreams[l][j]->push( boost::iostreams::gzip_compressor() );
+            p.alfileGzStreams[l][j]->push( *(p.alfileStreams[l][j]) );
+        }
+    }
+}
+ 
+void close_allelefiles(GlobalParams &p, GlobalOptions &opt) {
+    
+    for(int l=0; l<p.nLoci; l++) {
+        for(int j=0; j<p.nAlleles[l]; j++) {
+            delete p.alfileGzStreams[l][j];  
+            delete p.alfileStreams[l][j];
+        }
+    }
+}
 
-    opt.FIXALPHA       = as<LogicalVector>(Ropt["FIXALPHA"]);
-    opt.ALPHA          = as<NumericVector>(Ropt["ALPHA"]);
-    opt.ALPHAMIN       = as<NumericVector>(Ropt["ALPHAMIN"]);
-    opt.ALPHAMAX       = as<NumericVector>(Ropt["ALPHAMAX"]);
+arma::mat calc_rotation_mat(double angle) {
+    
+    arma::mat res(2,2);
+    res(0,0) =  cos(angle);
+    res(0,1) = -sin(angle);
+    res(1,0) =  sin(angle);
+    res(1,1) =  cos(angle);
+    
+    return res;
+}
 
-    opt.ALPHASD        = as<NumericVector>(Ropt["ALPHASD"]);
+arma::mat calc_stretch_mat(double ratio) {
     
-    opt.ANGLE          = as<double>(Ropt["ANGLE"]);
-    opt.FIXANGLE       = as<bool>(Ropt["FIXANGLE"]);
-    opt.ANGLESD        = as<double>(Ropt["ANGLESD"]);
+    arma::mat res(2,2);
+    res.eye();
+    res(1,1) = 1/ratio;
     
-    opt.RATIO          = as<double>(Ropt["RATIO"]);
-    opt.FIXRATIO       = as<bool>(Ropt["FIXRATIO"]);
-    opt.RATIOSD        = as<double>(Ropt["RATIOSD"]);
+    return res;
+}
+
+double calc_multinomial_loglik(const arma::mat &theta, const arma::mat &count, const arma::colvec &sumCount) 
+{ 
+    return arma::accu( arma::sum(count % theta,1) - sumCount % arma::log(arma::sum(arma::exp(theta),1)) );
+}
+
+double calc_multivar_normal_loglik(const arma::mat &x, const arma::mat &mu, const arma::mat &sigmaInv, double sigmaDet) {
+
+    double res = 0.0;
+    for(int j=0; j<x.n_cols; j++) {
+        arma::mat tmp = -0.5*( log(sigmaDet) + arma::trans(x.col(j) - mu.col(j)) * sigmaInv * (x.col(j) - mu.col(j)) );
+        //tmp.print();
+        res += arma::accu(tmp);
+    }
+        
+    return res;
+}
+
+arma::mat calc_f(const arma::mat &theta) {
     
-    opt.XIRANGE        = as<NumericVector>(Ropt["XIRANGE"]);
-    opt.FIXXI          = as<bool>(Ropt["FIXXI"]);
-    opt.XI             = as<NumericVector>(Ropt["XI"]);
-    opt.XISD           = as<double>(Ropt["XISD"]);
-    opt.SIGMAXI        = as<double>(Ropt["SIGMAXI"]);
+    int nAlleles = theta.n_cols;
     
-    opt.FIXETA         = as<bool>(Ropt["FIXETA"]);
-    opt.ETA            = as<NumericVector>(Ropt["ETA"]);
-    opt.ETASD          = as<double>(Ropt["ETASD"]);
+    arma::mat expTheta = arma::exp(theta);
+    arma::mat sumExpTheta = arma::sum(expTheta,1) * arma::ones<arma::rowvec>(nAlleles);
     
-    opt.BETARANGE      = as<NumericVector>(Ropt["BETARANGE"]);
-    opt.FIXBETA        = as<bool>(Ropt["FIXBETA"]);
-    opt.BETA           = as<NumericVector>(Ropt["BETA"]);
-    opt.BETASD         = as<double>(Ropt["BETASD"]);
-    opt.SIGMABETA      = as<double>(Ropt["SIGMABETA"]);
+    return expTheta / sumExpTheta;
+}
+
+
+void outputAccepts(GlobalParams &p, GlobalOptions &opt) {
+    
+    std::cout << std::endl;
+    std::cout << "Acceptance Rates:" << std::endl;
+    std::cout << "=============================================" << std::endl;
     
     
-    opt.XSD            = as<double>(Ropt["XSD"]);
+    std::cout << "alpha  : ";
+    for (int l=0; l<p.alpha.size(); l++) 
+        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.alphaAccept[l], p.alphaAttempt[l]) << " ";
+    std::cout << std::endl;
     
-    opt.LOCALSD        = as<double>(Ropt["LOCALSD"]);
-    opt.GLOBALSD       = as<double>(Ropt["GLOBALSD"]);
+    if (!opt.FIXANGLE) {
+        std::cout << "angle  : ";
+        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.angleAccept, p.angleAttempt) << " ";
+        std::cout << std::endl;
+    }
     
-    opt.NULLPROB       = as<double>(Ropt["NULLPROB"]);
-    opt.DELTA          = as<double>(Ropt["DELTA"]);
+    if (!opt.FIXRATIO) {
+        std::cout << "ratio  : ";
+        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.ratioAccept, p.ratioAttempt) << " ";
+        std::cout << std::endl;
+    }
     
-    return;
+    if (!opt.FIXXI) {
+        std::cout << "xi     : ";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.xiAccept[l],p.xiAttempt[l]) << " ";
+        std::cout << std::endl;
+    }
+    
+    if (!opt.FIXBETA) {
+        std::cout << "beta   : ";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.betaAccept[l], p.betaAttempt[l]) << " ";
+        std::cout << std::endl;
+    }
+    
+    if (!opt.FIXETA) {
+        std::cout << "eta    : ";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.etaAccept[l], p.etaAttempt[l]) << " ";
+        std::cout << std::endl;
+    }
+    
+    std::cout << "theta  : ";
+    for (int l=0; l<p.nLoci; l++) {
+        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.thetaAccept[l], p.thetaAttempt[l]) << " ";
+    }
+    std::cout << std::endl << std::endl;
+    
+}
+
+
+void outputTuning(GlobalParams &p, GlobalOptions &opt) {
+    
+    std::cout << std::endl;
+    std::cout << "Tuning Results:" << std::endl;
+    std::cout << "=============================================" << std::endl;
+
+    
+    for (int l=0; l<opt.ALPHASD.size(); l++) {
+        std::cout << "alpha" << l << " : "; 
+        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.ALPHASD(l) << "]";
+        std::cout << " " << std::setprecision(3) << std::setw(5) << p.alpha_sd(l) << std::endl;
+    }
+    
+    if (!opt.FIXANGLE) {
+        std::cout << "angle  : ";
+        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.ANGLESD << "]";
+        std::cout << " " << std::setprecision(3) << std::setw(5) << p.angle_sd << std::endl;
+    }
+    
+    if (!opt.FIXRATIO) {
+        std::cout << "ratio  : ";
+        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.RATIOSD << "]";
+        std::cout << " " << std::setprecision(3) << std::setw(5) << p.ratio_sd << std::endl;
+    }
+    
+    if (!opt.FIXXI) {
+        std::cout << "xi     : [" << std::setprecision(3) << std::setw(5) << opt.XISD << "] ";
+        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.xi_sd) << ")";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << " " << std::setprecision(3) << std::setw(5) << p.xi_sd(l);
+        std::cout << std::endl;
+    }
+    
+    if (!opt.FIXBETA) {
+        std::cout << "beta   : [" << std::setprecision(3) << std::setw(5) << opt.BETASD << "] ";
+        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.beta_sd) << ")";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << " " << std::setprecision(3) << std::setw(5) << p.beta_sd(l);
+        std::cout << std::endl;
+    }
+    
+    if (!opt.FIXETA) {
+        std::cout << "eta    : [" << std::setprecision(3) << std::setw(5) << opt.ETASD << "] ";
+        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.eta_sd) << ")";
+        for (int l=0; l<p.nLoci; l++) 
+            std::cout << " " << std::setprecision(3) << std::setw(5) << p.eta_sd(l);
+        std::cout << std::endl;
+    }
+    
+    std::cout << "theta  : [" << std::setprecision(3) << std::setw(5) << opt.THETASD << "] ";
+    std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.theta_sd) << ")";
+    for(int l=0; l<p.nLoci; l++) {
+        std::cout << " " << std::setprecision(3) << std::setw(5) << p.theta_sd[l];
+    }
+    std::cout << std::endl << std::endl;
 }
 
 
 
 // compute great circle distance from positions in radians
-//from http://www.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/TSPFAQ.html
-double calc_distance(double x1, double y1, double x2, double y2) {
+// from http://www.iwr.uni-heidelberg.de/groups/comopt/software/TSPLIB95/TSPFAQ.html
+
+double great_circle_dist(double x1, double y1, double x2, double y2)
+{
     double RRR = 6378.388; 
     
     double q1 = cos( x1 - x2 ); 
@@ -161,34 +246,23 @@ double calc_distance(double x1, double y1, double x2, double y2) {
     return( RRR * acos( 0.5*((1.0+q1)*q2 - (1.0-q1)*q3) ) );
 }
 
-SEXP R_calc_distance_to_point(SEXP px, SEXP py, SEXP x, SEXP y) {
-    NumericVector xc(x), yc(y);
-    
-    NumericVector dist(xc.size());
-    for(int i=0; i < xc.size(); ++i) {
-        dist[i] = calc_distance(as<double>(px), as<double>(py), xc[i], yc[i]);
-    }
-    
-    return(dist);
+double accept_ratio(unsigned int accept, unsigned int attempt)
+{
+    return (1.0*accept) / attempt;
 }
 
 
-double calc_accept_ratio(unsigned int accept, unsigned int attempt) {
-    
-    return( (1.0*accept) / attempt );
+arma::mat distance_mat(arma::mat const &m) 
+{
+    return distance_mat(m.col(0),m.col(1));
 }
 
+arma::mat distance_mat(arma::colvec const &xc, arma::colvec const &yc) {
 
-mat calc_distance_mat(mat const &m) {
-    return(calc_distance_mat(m.col(0),m.col(1)));
-}
-
-mat calc_distance_mat(colvec const &xc, colvec const &yc) {
-
-    mat dist = zeros<mat>(xc.n_elem, xc.n_elem);
+    arma::mat dist = arma::zeros<arma::mat>(xc.n_elem, xc.n_elem);
     for(int i=1; i < xc.n_elem; ++i) {
         for(int j=0; j < i; ++j) {
-            dist(i,j) = calc_distance(xc(i), yc(i), xc(j), yc(j));
+            dist(i,j) = great_circle_dist(xc(i), yc(i), xc(j), yc(j));
             dist(j,i) = dist(i,j);
         }
     }
@@ -196,28 +270,8 @@ mat calc_distance_mat(colvec const &xc, colvec const &yc) {
     return(dist);
 }
 
-SEXP R_calc_distance(SEXP x, SEXP y) {
-    NumericVector xt(x);                 // creates Rcpp vector from SEXP
-    NumericVector yt(y);                   // creates Rcpp matrix from SEXP
-    
-    colvec xc(xt.begin(), xt.size(), false);
-    colvec yc(yt.begin(), yt.size(), false);
-    
-    mat res = calc_distance_mat(xc,yc);
-    
-    return(wrap(res));
-}
-
-// normal density
-colvec dnorm(colvec x) {
-    return ((1.0/sqrt(2*math::pi())) * exp((-0.5)*square(x)));
-}
-double dnorm(double x) {
-    return ((1.0/sqrt(2*math::pi())) * exp((-0.5)*(x*x)));
-}
-
-
-double isLeft(double x0, double y0, double x1, double y1,  double x2, double y2) {
+double isLeft(double x0, double y0, double x1, double y1,  double x2, double y2)
+{
     return( (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) );
 }
 
@@ -226,21 +280,20 @@ double isLeft(double x0, double y0, double x1, double y1,  double x2, double y2)
 //      Input:   x,y = a point,
 //               BoundaryX and BoundaryY = points of a polygon with V[n]=V[0]
 //      Return:  wn = the winding number (=0 only if (x,y) is outside polygon)
-int isInsideBoundary( double x, double y, mat boundary) {
-    
+
+int isInsideBoundary( double x, double y, arma::mat boundary)
+{
     if(boundary.n_elem == 0) // if no boundary, just return 1
         return 1;
-  
-
+    
     int wn = 0;    // the winding number counter
     
-    // loop through all edges of the polygon
     for (int i=0; i < (boundary.n_rows-1); i++) {   // edge from V[i] to V[i+1]
-        if (boundary(i,1) <= y) {         // start y <= P.y
+        if (boundary(i,1) <= y) {                   // start y <= P.y
             if (boundary(i+1,1) > y 
                 && isLeft( boundary(i,0),boundary(i,1), boundary(i+1,0),boundary(i+1,1), x, y) > 0)  
                 ++wn;            
-        } else {                       
+        } else {       
             if (boundary(i+1,1) <= y 
                 && isLeft( boundary(i,0),boundary(i,1), boundary(i+1,0),boundary(i+1,1), x, y) < 0)  
                 --wn;            

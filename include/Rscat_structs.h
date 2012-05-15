@@ -1,7 +1,41 @@
 #ifndef _RSCAT_STRUCTS_H
 #define _RSCAT_STRUCTS_H
 
+#include <RcppArmadillo.h>
+#include <fstream>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+
+#ifdef USEMAGMA
+#include "Rscat_gpu.h"
+#endif
+
+class gzip_stream {
+    std::ofstream *file_stream;
+    boost::iostreams::filtering_ostream *file_gzip_stream;
+    
+  public:
+    gzip_stream(std::string file) {
+          file_stream = new std::ofstream(file.c_str(), std::ios_base::binary);
+          file_gzip_stream = new boost::iostreams::filtering_ostream;
+          file_gzip_stream->push( boost::iostreams::gzip_compressor() );
+          file_gzip_stream->push( *file_stream );
+    }
+    ~gzip_stream() {
+        //delete file_gzip_stream;  
+        //delete file_stream;
+    }
+    
+    boost::iostreams::filtering_ostream *stream() {
+        return file_gzip_stream;
+    }
+};
+
 struct GlobalParams {
+
+#ifdef USEMAGMA
+    GPU_data gpu;
+#endif
     
     int chain_num;
     
@@ -17,7 +51,7 @@ struct GlobalParams {
     
     Rcpp::IntegerVector         indRegion;
     
-    arma::mat                   predDist;
+    arma::mat                   pred_dist;
     
     std::vector<arma::mat>      count;          // NA  RxA[l]
     std::vector<arma::colvec>   sumCount;       // NA  Rx1
@@ -29,7 +63,6 @@ struct GlobalParams {
     
     std::vector<double>         alpha;          // 4
     
-    std::vector<arma::mat>      X;              // NA  RxA[l]
     std::vector<arma::mat>      theta;          // NA  RxA[l]
     
     double                      anisoRatio;
@@ -56,7 +89,7 @@ struct GlobalParams {
     
     arma::mat                   boundary;
     
-    std::vector<arma::colvec>   x_sd;        // NA   Rx1
+    arma::rowvec                theta_sd;        // NA
     arma::rowvec                mu_sd;       
     arma::rowvec                eta_sd;      
     arma::rowvec                xi_sd;
@@ -65,8 +98,8 @@ struct GlobalParams {
     double                      angle_sd;
     double                      ratio_sd;
     
-    std::vector<arma::ucolvec>   Xattempt;        // NA   Rx1
-    std::vector<arma::ucolvec>   Xaccept;         // NA   Rx1
+    arma::urowvec                thetaAttempt;        // NA
+    arma::urowvec                thetaAccept;         // NA
     
     arma::urowvec                muAttempt;       // NA   
     arma::urowvec                muAccept;        // NA 
@@ -88,6 +121,9 @@ struct GlobalParams {
     
     unsigned int                 ratioAttempt;
     unsigned int                 ratioAccept;
+    
+    //std::vector<gzip_stream> cvfileStreams;
+    //std::vector<std::vector<gzip_stream> > alfileStreams;
     
     std::vector<boost::iostreams::filtering_ostream*> cvfileGzStreams;
     std::vector<std::ofstream*> cvfileStreams;
@@ -148,7 +184,7 @@ struct GlobalOptions {
     double BETASD;
     double SIGMABETA;
 
-    double XSD;
+    double THETASD;
     
     double LOCALSD;
     double GLOBALSD;
