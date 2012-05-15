@@ -10,7 +10,7 @@ CXX               := g++
 # flags
 LIBS              := @LIBS@ $(RCPP_LIBS)
 LDFLAGS           := @LDFLAGS@
-CPPFLAGS          := @CPPFLAGS@
+CPPFLAGS          := @CPPFLAGS@ -I../include
 NCFLAGS           := @NCFLAGS@
 
 # files

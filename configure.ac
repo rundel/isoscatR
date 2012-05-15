@@ -49,7 +49,7 @@ else
 	R_CPPFLAGS=`"${R_HOME}/bin/R" CMD config CXXFLAGS` 
 	
 	CPPFLAGS+=" ${R_INCLUDE} ${R_CPPFLAGS} ${RCPP_FLAGS} ${RCPPARMA_FLAGS}"
-	LIBS+=" ${R_LIB} ${RCPP_LIBS}"
+	LIBS+=" ${R_LIB} ${RCPP_LIBS} ${R_BLAS} ${R_LAPACK}"
 fi
 
 #################### Boost Stuff ####################
