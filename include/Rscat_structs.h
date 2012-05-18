@@ -7,7 +7,7 @@
 #include <boost/iostreams/filter/gzip.hpp>
 
 #ifdef USEMAGMA
-#include "Rscat_gpu.h"
+#include <cublas_api.h>
 #endif
 
 class gzip_stream {
@@ -34,7 +34,12 @@ class gzip_stream {
 struct GlobalParams {
 
 #ifdef USEMAGMA
-    GPU_data gpu;
+    double *d_invcov11;
+    double *d_dist11, *d_dist12, *d_dist22;
+    double *d_cov11,  *d_cov12,  *d_cov22;
+    double *d_tmp;
+    double *d_predcov, *d_predmean;
+    cublasHandle_t handle;
 #endif
     
     int chain_num;

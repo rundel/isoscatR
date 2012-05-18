@@ -7,6 +7,10 @@
 #include "Rscat_util.h"
 #include "Rscat_locate.h"
 
+#ifdef USEMAGMA
+#include "Rscat_gpu.h"
+#endif
+
 RcppExport
 SEXP mcmc_main(SEXP rChain,
                SEXP rBoundary,   // px2 matrix
@@ -88,6 +92,10 @@ SEXP mcmc_main(SEXP rChain,
         open_cvfiles(p,opt);
         open_allelefiles(p,opt);
         init_locate(p, opt);
+        
+        #ifdef USEMAGMA
+        init_GPU_data(p);
+        #endif
     }
     
     Rcpp::List res = MCMCLoop(p, opt, Niter, Nthin, false, false);
@@ -101,6 +109,10 @@ SEXP mcmc_main(SEXP rChain,
     if (opt.LOCATE) {
           close_cvfiles(p, opt);
           close_allelefiles(p, opt);
+          
+          #ifdef USEMAGMA
+          cleanup_GPU_data(p);
+          #endif
     }
     
     return(res);
