@@ -17,14 +17,17 @@ RcppExport SEXP read_allele_file(SEXP Rfile) {
     std::ifstream filestream(file_name.c_str(), std::ios_base::in | std::ios_base::binary);
     
     if (filestream.is_open()) {
-        
-        boost::iostreams::filtering_istream f;
-        f.push( boost::iostreams::gzip_decompressor() );
-        f.push( filestream );
-        
         std::vector<char> data;
-        boost::iostreams::copy(f, boost::iostreams::back_inserter(data));
+        try {
+            boost::iostreams::filtering_istream f;
+            f.push( boost::iostreams::gzip_decompressor() );
+            f.push( filestream );
         
+            boost::iostreams::copy(f, boost::iostreams::back_inserter(data));
+        } catch (const boost::iostreams::gzip_error& e) {
+            filestream.seekg(std::ios_base::beg);
+            boost::iostreams::copy(filestream, boost::iostreams::back_inserter(data));
+        }
         arma::vec x( (double *) &data[0], data.size() / sizeof(double), false);
         
         return(Rcpp::wrap(x));
