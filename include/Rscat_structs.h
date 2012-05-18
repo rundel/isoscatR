@@ -145,6 +145,9 @@ struct GlobalOptions {
     
     bool LOCATE;
     double MAXCELL;
+    
+    bool OUTPUTALFREQ;
+    bool GZIPOUTPUT;
         
     double PSEUDOCOUNT;
     

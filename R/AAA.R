@@ -10,6 +10,9 @@ scat_options = list( VERBOSE = FALSE,
                 LOCATE = FALSE,
                 MAXCELL = 2500,
                 
+                OUTPUTALFREQ = FALSE,
+                GZIPOUTPUT = TRUE,
+                
                 TMPDIR = "./",
                 FILESUFFIX = "",
                 

@@ -201,6 +201,9 @@ void parseOptions(SEXP sexpRopt, GlobalOptions &opt)
     opt.LOCATE       = Rcpp::as<bool>(Ropt["LOCATE"]);
     opt.MAXCELL      = Rcpp::as<double>(Ropt["MAXCELL"]);
     
+    opt.OUTPUTALFREQ = Rcpp::as<bool>(Ropt["OUTPUTALFREQ"]);
+    opt.GZIPOUTPUT   = Rcpp::as<bool>(Ropt["GZIPOUTPUT"]);
+    
     opt.RETURNFIT    = Rcpp::as<bool>(Ropt["RETURNFIT"]);
     opt.USEMATERN    = Rcpp::as<bool>(Ropt["USEMATERN"]);
     
