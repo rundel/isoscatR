@@ -7,7 +7,7 @@ __global__ void powered_exponential_kernel(double* dist, double* cov,
     int pos = blockDim.x * blockIdx.x + threadIdx.x;
 
     for (int i = pos; i < nm; i += n_threads)
-        cov[i] = sigma2 * exp( -pow(dist[i] / phi, kappa) ) + nugget*( i%n == 0 );
+        cov[i] = sigma2 * exp( -pow(dist[i] / phi, kappa) ) + nugget*( i%n == i/n );
     
 }
 
@@ -22,4 +22,6 @@ void cov_powered_exponential_gpu(double* dist, double* cov,
     int blocks = (n+n_threads-1)/n_threads;
     
     powered_exponential_kernel<<<blocks, n_threads>>>(dist, cov, n, nm, sigma2, phi, kappa, nugget);
+    
+    cudaDeviceSynchronize();
 }
