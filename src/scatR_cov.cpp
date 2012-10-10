@@ -1,7 +1,7 @@
 #include <Rmath.h>
 #include <iostream>
 
-#include "Rscat_cov.h"
+#include "scatR_cov.h"
 
 arma::mat calc_Sigma(const std::vector<double> alpha, const arma::mat& dist, bool usematern)
 {

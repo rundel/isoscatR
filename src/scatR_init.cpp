@@ -2,9 +2,9 @@
 #include <boost/lexical_cast.hpp>
 #include <RcppArmadillo.h>
 
-#include "Rscat_init.h"
-#include "Rscat_cov.h"
-#include "Rscat_util.h"
+#include "scatR_init.h"
+#include "scatR_cov.h"
+#include "scatR_util.h"
 
 void calc_counts(GlobalParams &p, GlobalOptions &opt) {
     
@@ -104,7 +104,8 @@ void init_params(GlobalParams &p, GlobalOptions &opt) {
                               : Rcpp::rnorm(1,0,0.25)[0]; //runif(1,opt.XIRANGE[0],opt.XIRANGE[1])[0];
         
         p.beta[l] = (opt.FIXBETA) ? opt.BETA[l]
-                                  : abs(Rcpp::rnorm(1,3,1)[0]); //runif(1,opt.BETARANGE[0],opt.BETARANGE[1])[0]; 
+                                  : Rcpp::runif(1,opt.BETARANGE[0],opt.BETARANGE[1])[0];
+                                //: abs(Rcpp::rnorm(1,3,1)[0]);
         if (opt.FIXETA) {
             p.eta[l] = opt.ETA[l] * arma::ones<arma::rowvec>(p.nAlleles[l]);
         } else {

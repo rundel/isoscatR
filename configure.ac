@@ -1,4 +1,4 @@
-AC_INIT([Rscat], [0.1.0], [rundel@gmail.com])
+AC_INIT([scatR], [0.1.0], [rundel@gmail.com])
 AC_CONFIG_AUX_DIR(config)
 
 AM_INIT_AUTOMAKE
@@ -130,7 +130,7 @@ if test "${USE_MAGMA}" == "yes"; then
 	CPPFLAGS+=" ${CUDA_CPPFLAGS} -DUSEMAGMA -I${MAGMA_INC}"
 	LDFLAGS+=" ${CUDA_LDFLAGS} -L${MAGMA_LIB}"
 	LIBS+=" ${CUDA_LIBS} -lmagmablas -lmagma"
-	CU_FILES=Rscat_cov_gpu.cu
+	CU_FILES=scatR_cov_gpu.cu
 	NCFLAGS="-arch=sm_20 -O2 -Xcompiler \"-O2 -fPIC\""
 	
 else

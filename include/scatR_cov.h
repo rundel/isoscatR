@@ -1,5 +1,5 @@
-#ifndef _RSCAT_COV_H
-#define _RSCAT_COV_H
+#ifndef _SCATR_COV_H
+#define _SCATR_COV_H
 
 #include <RcppArmadillo.h>
 

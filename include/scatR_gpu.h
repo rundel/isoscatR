@@ -1,8 +1,8 @@
-#ifndef _RSCAT_GPU_H
-#define _RSCAT_GPU_H
+#ifndef _SCATR_GPU_H
+#define _SCATR_GPU_H
 
 #include <cublas_api.h>
-#include "Rscat_structs.h"
+#include "scatR_structs.h"
 
 void init_GPU_data(GlobalParams &p);
 void cleanup_GPU_data(GlobalParams &p);

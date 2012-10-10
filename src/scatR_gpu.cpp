@@ -3,8 +3,8 @@
 #include <iostream>
 #include <RcppArmadillo.h>
 
-#include "Rscat_gpu.h"
-#include "Rscat_structs.h"
+#include "scatR_gpu.h"
+#include "scatR_structs.h"
 
 #include <cuda_runtime.h>
 

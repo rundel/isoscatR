@@ -1,8 +1,8 @@
-#ifndef _RSCAT_UTIL_H
-#define _RSCAT_UTIL_H
+#ifndef _SCATR_UTIL_H
+#define _SCATR_UTIL_H
 
 #include <RcppArmadillo.h>
-#include "Rscat_structs.h"
+#include "scatR_structs.h"
 
 void open_allelefiles(GlobalParams &p, GlobalOptions &opt);
 void close_allelefiles(GlobalParams &p, GlobalOptions &opt);

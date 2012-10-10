@@ -143,7 +143,7 @@ MCMC_Main <- function(genofile, locfile, boundfile, options=list(),
               locate_indivs,
               locate_geno,
               run_opts,
-              PACKAGE = "Rscat" )
+              PACKAGE = "scatR" )
   
     mcmc_list = lapply(z,function(z) {
             

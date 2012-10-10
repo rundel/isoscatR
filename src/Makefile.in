@@ -1,7 +1,7 @@
 #
 #
 
-BIN               := Rscat.so
+BIN               := scatR.so
 
 # compilers
 NVCC              := @NVCC@

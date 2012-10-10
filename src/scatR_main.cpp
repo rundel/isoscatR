@@ -1,14 +1,14 @@
 #include <RcppArmadillo.h>
 #include <boost/lexical_cast.hpp>
 
-#include "Rscat_structs.h"
-#include "Rscat_init.h"
-#include "Rscat_mcmc.h"
-#include "Rscat_util.h"
-#include "Rscat_locate.h"
+#include "scatR_structs.h"
+#include "scatR_init.h"
+#include "scatR_mcmc.h"
+#include "scatR_util.h"
+#include "scatR_locate.h"
 
 #ifdef USEMAGMA
-#include "Rscat_gpu.h"
+#include "scatR_gpu.h"
 #endif
 
 RcppExport

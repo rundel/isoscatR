@@ -7,8 +7,8 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
 
-#include "Rscat_cov.h"
-#include "Rscat_util.h"
+#include "scatR_cov.h"
+#include "scatR_util.h"
 
 RcppExport SEXP read_allele_file(SEXP Rfile) {
     
@@ -77,4 +77,43 @@ RcppExport SEXP R_great_circle_dist_point(SEXP px, SEXP py, SEXP x, SEXP y)
     }
     
     return(dist);
+}
+
+RcppExport SEXP R_fast_aggregate(SEXP R_rast, SEXP R_rstep, SEXP R_cstep, SEXP R_nrow, SEXP R_ncol, SEXP R_nlayer) 
+{
+    int rstep  = Rcpp::as<int>(R_rstep),
+        cstep  = Rcpp::as<int>(R_cstep),
+        ncol   = Rcpp::as<int>(R_ncol),
+        nrow   = Rcpp::as<int>(R_nrow),
+        nlayer = Rcpp::as<int>(R_nlayer);
+    
+    int outrow = nrow/rstep,
+        outcol = ncol/cstep;
+    
+    Rcpp::NumericMatrix rast(R_rast),
+                        out( outrow*outcol, nlayer);
+    
+    
+    for(int l=0; l < nlayer; l++) {
+        
+        for(int r=0; r<outrow; r++) {
+            for(int c=0; c<outcol; c++) {
+                
+                double sum = 0.0;
+                int n = 0;
+                for(int rs=r*rstep; rs<(r+1)*rstep; rs++) {
+                    for(int cs=c*cstep; cs<(c+1)*cstep; cs++) {
+                        double val = rast(rs+cs*nrow,l);
+                        if ( !R_IsNA(val) ) {
+                            sum += val;
+                            n++;
+                        }
+                    }
+                }
+                out(r+c*outrow, l) = sum / n;
+            }
+        }
+    }
+    
+    return Rcpp::wrap( out );
 }

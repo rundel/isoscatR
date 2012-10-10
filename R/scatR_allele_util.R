@@ -68,7 +68,7 @@ allele_raster_from_file = function(root, ind = NULL, chain = 1, func = median) {
     pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]*_",chain,".mat",sep=""), full.names=TRUE)
     stopifnot(length(pred_file)==1)
     
-    pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
+    pred_locs = matrix(scan(pred_file,quiet=TRUE),ncol=2,byrow=TRUE)*180/pi
     
     step = calc_step(pred_locs)
     r = create_raster(pred_locs,step)
@@ -78,7 +78,7 @@ allele_raster_from_file = function(root, ind = NULL, chain = 1, func = median) {
     stopifnot(all(!is.na(cells)))
 
     z = read_allele_file(file, nr=nrow(pred_locs))
-    r[cells] = exp(apply(z,1,func))
+    r[cells] = apply(exp(z),1,func)
     
     return(r)
 }
@@ -104,7 +104,7 @@ allele_brick_from_file = function(root, ind = NULL, chain = 1) {
     pred_file = dir(file_dir, pattern=paste("pred_coords[0-9]*_",chain,".mat",sep=""), full.names=TRUE)
     stopifnot(length(pred_file)==1)
     
-    pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
+    pred_locs = matrix(scan(pred_file,quiet=TRUE),ncol=2,byrow=TRUE)*180/pi
     
     step = calc_step(pred_locs)
     r = create_raster(pred_locs,step)
@@ -131,7 +131,7 @@ read_allele_file = function(file, nr, nc, byrow=FALSE) {
     
     stopifnot(file.exists(file))
         
-    vec = .Call("read_allele_file", file, PACKAGE = "Rscat" )
+    vec = .Call("read_allele_file", file, PACKAGE = "scatR" )
 
     if (missing(nr) & missing(nc)) {
         return(vec)
@@ -154,26 +154,27 @@ calc_model_allele_freq = function(result_dir, nChains, nIter, loc_file, sep="\t"
     
     stopifnot(file.exists(result_dir))
     
+    locs = read_location_file(loc_file,sep)[,4:3]
     al_files = dir(result_dir, pattern = "Al[0-9]+-[0-9]+_[0-9]+\\.gz")
     stopifnot(length(al_files)!=0)
-
-    pred_file = file.path(result_dir,"pred_coords.mat")
-    stopifnot(file.exists(pred_file))
-    
-    pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
-    step = calc_step(pred_locs)
-    r = create_raster(pred_locs,step)
-    r[]=NA
-    
-    cells = cellFromXY(r,pred_locs)
-    stopifnot(all(!is.na(cells)))
-    
-    
-    locs = read_location_file(loc_file,sep)[,4:3]
-    samp_cells = cellFromXY(r,locs)
     
     res = list()
     for(c in 1:nChains) {
+        
+        pred_file = file.path(result_dir,paste("pred_coords_",c,".mat",sep=""))
+        stopifnot(file.exists(pred_file))
+
+        pred_locs = matrix(scan(pred_file),ncol=2,byrow=TRUE)*180/pi
+        step = calc_step(pred_locs)
+        r = create_raster(pred_locs,step)
+        r[]=NA
+
+        cells = cellFromXY(r,pred_locs)
+        stopifnot(all(!is.na(cells)))
+        
+        samp_cells = cellFromXY(r,locs)
+        
+        
         res[[c]] = list()
         
         l=1
@@ -185,11 +186,11 @@ calc_model_allele_freq = function(result_dir, nChains, nIter, loc_file, sep="\t"
             
             res[[c]][[l]] = array(NA,c(sum(sub),nrow(locs),length(probs)))
             for(a in 1:sum(sub)) {
-                file = paste("Al",l,"-",a,"_",c,".gz",sep="")
+                file = file.path(result_dir, paste("Al",l,"-",a,"_",c,".gz",sep=""))
                 print(file)
-                stopifnot(file.exists(file.path(result_dir,file)))
+                stopifnot(file.exists(file))
                 
-                z = read_allele_file(file.path(result_dir,file), nr=nrow(pred_locs),nc=nIter)
+                z = read_allele_file(file, nr=nrow(pred_locs),nc=nIter)
                 
                 quants = t( matrix(apply(z,1,function(x) quantile(x,probs)),nrow=length(probs)) )
                 

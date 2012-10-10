@@ -1,8 +1,8 @@
-#ifndef _RSCAT_INIT_H
-#define _RSCAT_INIT_H
+#ifndef _SCATR_INIT_H
+#define _SCATR_INIT_H
 
 #include <RcppArmadillo.h>
-#include "Rscat_structs.h"
+#include "scatR_structs.h"
 
 void parseArgs(GlobalParams &p, SEXP rBoundary, SEXP rLocations, SEXP rRegionNames,
                                 SEXP rGenotypes, SEXP rIndivID, SEXP rNalleles);

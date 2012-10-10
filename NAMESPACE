@@ -1,2 +1,2 @@
-useDynLib(Rscat)
+useDynLib(scatR)
 exportPattern("^[[:alpha:]]+")

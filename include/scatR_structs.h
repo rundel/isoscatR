@@ -1,5 +1,5 @@
-#ifndef _RSCAT_STRUCTS_H
-#define _RSCAT_STRUCTS_H
+#ifndef _SCATR_STRUCTS_H
+#define _SCATR_STRUCTS_H
 
 #include <RcppArmadillo.h>
 #include <fstream>
@@ -10,26 +10,26 @@
 #include <cublas_api.h>
 #endif
 
-class gzip_stream {
-    std::ofstream *file_stream;
-    boost::iostreams::filtering_ostream *file_gzip_stream;
-    
-  public:
-    gzip_stream(std::string file) {
-          file_stream = new std::ofstream(file.c_str(), std::ios_base::binary);
-          file_gzip_stream = new boost::iostreams::filtering_ostream;
-          file_gzip_stream->push( boost::iostreams::gzip_compressor() );
-          file_gzip_stream->push( *file_stream );
-    }
-    ~gzip_stream() {
-        //delete file_gzip_stream;  
-        //delete file_stream;
-    }
-    
-    boost::iostreams::filtering_ostream *stream() {
-        return file_gzip_stream;
-    }
-};
+//class gzip_stream {
+//    std::ofstream *file_stream;
+//    boost::iostreams::filtering_ostream *file_gzip_stream;
+//    
+//  public:
+//    gzip_stream(std::string file) {
+//          file_stream = new std::ofstream(file.c_str(), std::ios_base::binary);
+//          file_gzip_stream = new boost::iostreams::filtering_ostream;
+//          file_gzip_stream->push( boost::iostreams::gzip_compressor() );
+//          file_gzip_stream->push( *file_stream );
+//    }
+//    ~gzip_stream() {
+//        //delete file_gzip_stream;  
+//        //delete file_stream;
+//    }
+//    
+//    boost::iostreams::filtering_ostream *stream() {
+//        return file_gzip_stream;
+//    }
+//};
 
 struct GlobalParams {
 

@@ -91,7 +91,7 @@ calc_cov_matern = function(dist, sigma2, phi, nu, tau2,uselog=FALSE) {
     
     distmat = !is.null(dim(dist))
     
-    res = .Call("R_cov_matern", sigma2, nu, phi, tau2, dist, distmat, uselog, PACKAGE = "Rscat");
+    res = .Call("R_cov_matern", sigma2, nu, phi, tau2, dist, distmat, uselog, PACKAGE = "scatR");
     
     return(res)
 }

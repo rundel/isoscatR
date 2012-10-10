@@ -1,13 +1,13 @@
-Package: Rscat
+Package: scatR
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
-Date: 2010-10-02
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Title: R package for smoothed and continuous assignment tests of genetic samples
+Version: 0.1
+Date: 2012-10-10
+Author: Colin Rundel <rundel@gmail.com>
+Maintainer: Colin Rundel <rundel@gmail.com>
+Description: Package for fitting SCAT models for genetic samples
+License: 
 LazyLoad: yes
-Depends: Rcpp (>= 0.8.6), RcppArmadillo (>= 0.2.7), coda, rgeos
+Depends: Rcpp (>= 0.9.14), RcppArmadillo (>= 0.3.4), coda, rgeos
 LinkingTo: Rcpp, RcppArmadillo
-SystemRequirements: GNU make
+SystemRequirements: GNU make, boost

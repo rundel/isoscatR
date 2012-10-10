@@ -5,7 +5,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
-#include "Rscat_util.h"
+#include "scatR_util.h"
 
 void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
     
@@ -23,7 +23,6 @@ void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
         p.cvfileGzStreams[l] = new boost::iostreams::filtering_ostream;
         p.cvfileGzStreams[l]->push( boost::iostreams::gzip_compressor() );
         p.cvfileGzStreams[l]->push( *(p.cvfileStreams[l]) );
-    
     }
 }
 

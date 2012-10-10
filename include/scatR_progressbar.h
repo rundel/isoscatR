@@ -7,8 +7,8 @@
 //  See http://www.boost.org/libs/timer for documentation.
 
 
-#ifndef RSCAT_PROGRESS_HPP
-#define RSCAT_PROGRESS_HPP
+#ifndef SCATR_PROGRESS_HPP
+#define SCATR_PROGRESS_HPP
 
 #include <boost/timer.hpp>
 #include <boost/utility.hpp>  // for noncopyable

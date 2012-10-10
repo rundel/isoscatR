@@ -3,12 +3,12 @@
 
 #include <RcppArmadillo.h>
 
-#include "Rscat_progressbar.h"
-#include "Rscat_mcmc.h"
-#include "Rscat_cov.h"
-#include "Rscat_util.h"
-#include "Rscat_init.h"
-#include "Rscat_locate.h"
+#include "scatR_progressbar.h"
+#include "scatR_mcmc.h"
+#include "scatR_cov.h"
+#include "scatR_util.h"
+#include "scatR_init.h"
+#include "scatR_locate.h"
 
 double tuneScale_1d(double acc_rate) {
 

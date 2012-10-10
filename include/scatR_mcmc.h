@@ -1,7 +1,7 @@
-#ifndef _RSCAT_MCMC_H
-#define _RSCAT_MCMC_H
+#ifndef _SCATR_MCMC_H
+#define _SCATR_MCMC_H
 
-#include "Rscat_structs.h"
+#include "scatR_structs.h"
 
 double tuneScale(double acc_rate);
 void MCMCTune(GlobalParams &p, GlobalOptions &opt);

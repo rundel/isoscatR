@@ -1,3 +1,29 @@
+raster_fast_aggregate = function(rast, fact=2) {
+    if (length(fact)==1) {
+        fact = as.integer(round(fact))
+        if (fact < 2) { stop('fact should be > 1') }
+        rstep = cstep = fact
+    } else if (length(fact)==2) {
+        rstep = as.integer(round(fact[[1]]))
+        cstep = as.integer(round(fact[[2]]))
+        if (rstep < 2) { stop('fact[[1]] should be > 1') } 
+        if (cstep < 2) { stop('fact[[2]] should be > 1') }
+    } else {
+        stop('length(fact) should be 1 or 2')
+    }
+    
+    nrow = dim(rast)[2]
+    ncol = dim(rast)[1]
+    nlayer = nlayers(rast)
+    
+    z = .Call("R_fast_aggregate", rast[], rstep, cstep, nrow, ncol, nlayer, PACKAGE = "scatR" )
+    
+    out = aggregate(brick(rast, values=FALSE), fact)
+    out[] = z
+    
+    return(out)
+}
+
 create_isotope_data = function(allele_file, location_file, isotope_file) {
     iso = read.table(isotope_file,sep=",")#[,-2]
 
@@ -73,7 +99,7 @@ calc_distance = function(x,y) {
     stopifnot(is.numeric(x))
     stopifnot(is.numeric(y))
     
-    res = .Call("R_calc_distance", x, y, PACKAGE = "Rscat" )
+    res = .Call("R_calc_distance", x, y, PACKAGE = "scatR" )
     
     return(res)
 }
@@ -94,7 +120,7 @@ calc_distance_to_point = function(px,py,x,y) {
     stopifnot(is.numeric(x))
     stopifnot(is.numeric(y))
     
-    res = .Call("R_great_circle_dist_point", px, py, x, y, PACKAGE = "Rscat" )
+    res = .Call("R_great_circle_dist_point", px, py, x, y, PACKAGE = "scatR" )
     
     return(res)
 }
