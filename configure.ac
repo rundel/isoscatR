@@ -3,7 +3,7 @@ AC_CONFIG_AUX_DIR(config)
 
 AM_INIT_AUTOMAKE
 
-USE_MAGMA=yes
+AC_PROG_LIBTOOL
 
 #################### GCC Compiler ####################
 
@@ -54,11 +54,16 @@ fi
 
 #################### Boost Stuff ####################
 
+
 BOOST_REQUIRE
 
 CPPFLAGS+=" ${BOOST_CPPFLAGS}"
-#LDFLAGS +=" ${BOOST_IOSTREAMS_LDFLAGS}"
-#LIBS    +=" ${BOOST_IOSTREAMS_LIBS}"
+
+
+BOOST_IOSTREAMS
+
+LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz"
+LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
 
 #################### CUDA Toolkit ####################
 
@@ -96,6 +101,8 @@ AC_CHECK_FILE(
 
 #################### MAGMA Libraries ####################
 
+USE_MAGMA=yes
+
 AC_ARG_WITH([magma-home],
 	[AC_HELP_STRING([--with-magma-home=DIR],[full path to MAGMA installion directory @<:@/usr/local/magma@:>@])],
 	[MAGMA_HOME="$withval"],
@@ -130,8 +137,13 @@ else
 	AC_MSG_RESULT([Unable to locate magma library / headers, compiling without gpu support])
 fi
 
-
 CPPFLAGS+=" -fpic"
+
+
+AC_MSG_RESULT([CPPFLAGS ${CPPFLAGS}])
+AC_MSG_RESULT([LIBS ${LIBS}])
+AC_MSG_RESULT([LDFLAGS ${LDFLAGS}])
+
 
 #################### Makevars ####################
 
