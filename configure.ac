@@ -65,6 +65,10 @@ BOOST_IOSTREAMS
 LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz"
 LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
 
+#################### Defaults     ####################
+
+USE_MAGMA=yes
+
 #################### CUDA Toolkit ####################
 
 AC_ARG_WITH(
@@ -100,8 +104,6 @@ AC_CHECK_FILE(
 )
 
 #################### MAGMA Libraries ####################
-
-USE_MAGMA=yes
 
 AC_ARG_WITH([magma-home],
 	[AC_HELP_STRING([--with-magma-home=DIR],[full path to MAGMA installion directory @<:@/usr/local/magma@:>@])],
