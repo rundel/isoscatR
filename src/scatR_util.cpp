@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
