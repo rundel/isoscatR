@@ -6,6 +6,8 @@
 #include "scatR_gpu.h"
 #include "scatR_structs.h"
 
+#include "scatR_magma_wrap.h"
+
 #include <cuda_runtime.h>
 
 
@@ -15,6 +17,8 @@ void init_GPU_data(GlobalParams &p) {
     int n_total = p.pred_dist.n_rows;
     int n_pred = n_total-n_known;
     
+    scatr_magma_init();
+
     arma::mat dist12 = p.pred_dist(arma::span(0,n_known-1),        arma::span(n_known, n_total-1));
     arma::mat dist22 = p.pred_dist(arma::span(n_known, n_total-1), arma::span(n_known, n_total-1));
     
@@ -40,6 +44,8 @@ void init_GPU_data(GlobalParams &p) {
 
 void cleanup_GPU_data(GlobalParams &p) {
     
+    scatr_magma_finalize();
+
     checkCublasError( 
         cublasDestroy_v2(p.handle), "handle (Destroy)" 
     );
@@ -64,33 +70,40 @@ void checkCudaError(const char *msg)
 
 void checkCublasError(cublasStatus_t err, std::string msg)
 {
-    if(err != CUBLAS_STATUS_SUCCESS) {
-        std::cout << "Error: cuBLAS - " << msg << " - " << cublasGetErrorString(err);
-        throw( std::exception() );
-    }
-}
+    std::string err_str;
 
-std::string cublasGetErrorString(cublasStatus_t err)
-{
     switch(err) {
         case CUBLAS_STATUS_SUCCESS :
-            return "operation completed successfully";
+            err_str = "operation completed successfully";
+            break;
         case CUBLAS_STATUS_NOT_INITIALIZED :
-            return "CUBLAS library not initialized";
+            err_str = "CUBLAS library not initialized";
+            break;
         case CUBLAS_STATUS_ALLOC_FAILED :
-            return "resource allocation failed";
+            err_str = "resource allocation failed";
+            break;
         case CUBLAS_STATUS_INVALID_VALUE :
-            return "unsupported numerical value was passed to function";
+            err_str = "unsupported numerical value was passed to function";
+            break;
         case CUBLAS_STATUS_ARCH_MISMATCH :
-            return "function requires an architectural feature absent from the architecture of the device";
+            err_str = "function requires an architectural feature absent from the architecture of the device";
+            break;
         case CUBLAS_STATUS_MAPPING_ERROR :
-            return "access to GPU memory space failed";
+            err_str = "access to GPU memory space failed";
+            break;
         case CUBLAS_STATUS_EXECUTION_FAILED :
-            return "GPU program failed to execute";
+            err_str = "GPU program failed to execute";
+            break;
         case CUBLAS_STATUS_INTERNAL_ERROR :
-            return "an internal CUBLAS operation failed";
+            err_str = "an internal CUBLAS operation failed";
+            break;
         default :
-            return "unknown error type";
+            err_str = "unknown error type";
+    }
+
+    if(err != CUBLAS_STATUS_SUCCESS) {
+        std::cout << "Error: cuBLAS - " << msg << " - " << err_str;
+        throw( std::exception() );
     }
 }
 

@@ -1,7 +1,7 @@
 #ifndef _SCATR_GPU_H
 #define _SCATR_GPU_H
 
-#include <cublas_api.h>
+#include <cublas_v2.h>
 #include "scatR_structs.h"
 
 void init_GPU_data(GlobalParams &p);
@@ -16,8 +16,5 @@ void cov_powered_exponential_gpu(double* dist, double* cov,
 
 void checkCudaError(const char *msg);
 void checkCublasError(cublasStatus_t err, std::string msg);
-std::string cublasGetErrorString(cublasStatus_t err);
-
-
 
 #endif
