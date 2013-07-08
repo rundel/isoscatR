@@ -69,28 +69,10 @@ SEXP mcmc_main(SEXP rChain,
         p.locate_indivs = Rcpp::IntegerVector(rLocIndivs);
         p.locate_genotypes = Rcpp::as<arma::imat>(rLocGenotypes);
 
-
-        //p.alfileStreams.resize(p.nLoci);
-        //for(int l=0; l<p.locate_indivs.size(); l++) {
-        //
-        //    std::string file = opt.TMPDIR + "/CV_Ind" 
-        //                     + boost::lexical_cast<std::string>(p.locate_indivs[l]) + "_"
-        //                     + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
-        //    
-        //    p.cvfileStreams.push_back( gzip_stream(file) );
-        //    
-        //    for(int j=0; j<p.nAlleles[l]; j++) {
-        //        std::string al_file = opt.TMPDIR + "/Al" 
-        //                            + boost::lexical_cast<std::string>(l+1) + "-"
-        //                            + boost::lexical_cast<std::string>(j+1) + "_"
-        //                            + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
-        //
-        //        p.alfileStreams[l].push_back( gzip_stream(al_file) );
-        //    }
-        //}
         
         open_cvfiles(p,opt);
-        open_allelefiles(p,opt);
+        if (opt.OUTPUTALFREQ)
+            open_allelefiles(p,opt);
         init_locate(p, opt);
         
         #ifdef USEMAGMA
@@ -103,16 +85,18 @@ SEXP mcmc_main(SEXP rChain,
     if (opt.VERBOSE) {
         std::cout << "Chain " << p.chain_num << ":" << std::endl;
         outputAccepts(p, opt);
-        std::cout << std::endl << std::endl;
+        
+        outputPerformance(p, opt);
     }
 
     if (opt.LOCATE) {
-          close_cvfiles(p, opt);
-          close_allelefiles(p, opt);
-          
-          #ifdef USEMAGMA
-          cleanup_GPU_data(p);
-          #endif
+        close_cvfiles(p, opt);
+        if (opt.OUTPUTALFREQ)
+            close_allelefiles(p, opt);
+        
+        #ifdef USEMAGMA
+        cleanup_GPU_data(p);
+        #endif
     }
     
     return(res);

@@ -7,7 +7,8 @@
 #include <boost/iostreams/filter/gzip.hpp>
 
 #ifdef USEMAGMA
-#include <cublas_api.h>
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
 #endif
 
 //class gzip_stream {
@@ -129,6 +130,13 @@ struct GlobalParams {
     
     //std::vector<gzip_stream> cvfileStreams;
     //std::vector<std::vector<gzip_stream> > alfileStreams;
+
+    arma::running_stat<double> step1;
+    arma::running_stat<double> step2;
+    arma::running_stat<double> step3;
+    arma::running_stat<double> step4;
+    arma::running_stat<double> step5;
+    arma::running_stat<double> step6;
     
     std::vector<boost::iostreams::filtering_ostream*> cvfileGzStreams;
     std::vector<std::ofstream*> cvfileStreams;

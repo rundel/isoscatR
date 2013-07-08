@@ -2,14 +2,15 @@
 #include <RcppArmadillo.h>
 
 #include <boost/lexical_cast.hpp> 
+#include <boost/timer/timer.hpp>
 
 #include "scatR_structs.h"
 #include "scatR_util.h"
 #include "scatR_cov.h"
 
 #ifdef USEMAGMA
+#include "scatR_magma_wrap.h"
 #include "scatR_gpu.h"
-#include <magma.h>
 #endif
 
 
@@ -81,9 +82,7 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
 
 void update_location(GlobalParams &p, GlobalOptions &opt) {
     
-    arma::wall_clock t;
-    t.tic();std::cout << "\n\n";
-    
+    boost::timer::cpu_timer timer;
     
     int n_known = p.nRegions;
     int n_total = p.pred_dist.n_rows;
@@ -91,7 +90,10 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
     int total_alleles = Rcpp::sum(p.nAlleles);
     
 #ifndef USEMAGMA
-    t.tic();
+    
+    timer.stop();
+    timer.start();
+
     arma::mat dist12 = p.pred_dist(arma::span(0,n_known-1),        arma::span(n_known, n_total-1));
     arma::mat dist22 = p.pred_dist(arma::span(n_known, n_total-1), arma::span(n_known, n_total-1));
     
@@ -99,26 +101,41 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
     cur_alpha[3] = 0;
     arma::mat cov12 = calc_Sigma(cur_alpha, dist12, opt.USEMATERN);
     arma::mat cov22 = calc_Sigma(p.alpha, dist22, opt.USEMATERN);
-    std::cout << "Calc  cov: " << t.toc() << "\n";
+    
+    p.step1(timer.elapsed().wall / 1000000000.0L);
     
     
-    t.tic();
+    timer.stop();
+    timer.start();
+    
     arma::mat tmp = cov12.t() * p.Sinv;
-    std::cout << "Calc  tmp: " << t.toc() << "\n";
     
-    t.tic();
+    p.step2(timer.elapsed().wall / 1000000000.0L);
+    
+    
+    timer.stop();
+    timer.start();
+
     arma::mat predL = arma::chol(cov22 - tmp * cov12).t();
-    std::cout << "Calc  predL: " << t.toc() << "\n";
+    
+    p.step3(timer.elapsed().wall / 1000000000.0L);
     
     
-    t.tic();
+    timer.stop();
+    timer.start();
+    
     arma::mat pred = predL * arma::randn<arma::mat>(n_pred,total_alleles);
-    std::cout << "Calc  pred: " << t.toc() << "\n";
+    
+    p.step4(timer.elapsed().wall / 1000000000.0L);
     
 #else
+
     double one = 1.0, negone = -1.0, zero = 0.0;
     
-    t.tic();
+
+    timer.stop();
+    timer.start();
+
     cov_powered_exponential_gpu(p.d_dist12, p.d_cov12, n_known, n_pred,  p.alpha[0], p.alpha[1], p.alpha[2], 0.0, 64);
     cov_powered_exponential_gpu(p.d_dist22, p.d_cov22, n_pred,  n_pred,  p.alpha[0], p.alpha[1], p.alpha[2], p.alpha[3], 64);
     
@@ -126,9 +143,13 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
         cublasSetMatrix(n_known, n_known, sizeof(double), p.Sinv.memptr(), n_known, p.d_invcov11, n_known), 
         "Sinv (Set)"
     );
-    std::cout << "Calc  cov: " << t.toc() << "\n";
-    
-    t.tic();
+
+    p.step1(timer.elapsed().wall / 1000000000.0L);
+
+
+    timer.stop();
+    timer.start();
+
     checkCublasError( // tmp = t(cov12) * cov11^-1
         cublasDgemm_v2( p.handle, CUBLAS_OP_T, CUBLAS_OP_N,
                         n_pred, n_known, n_known,
@@ -139,9 +160,13 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
                         p.d_tmp, n_pred ),
         "tmp"
     );
-    std::cout << "Calc  tmp: " << t.toc() << "\n";
     
-    t.tic();
+    p.step2(timer.elapsed().wall / 1000000000.0L);
+
+
+    timer.stop();
+    timer.start();
+
     arma::mat tmp(n_pred, n_known);
     checkCublasError( cublasGetMatrix(n_pred, n_known, sizeof(double), p.d_tmp, n_pred, tmp.memptr(), n_pred), "tmp (Get)" );
     
@@ -157,7 +182,7 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
     );
     
     int info;
-    magma_dpotrf_gpu('L', n_pred, p.d_cov22, n_pred, &info);
+    magma_cholesky('L', n_pred, p.d_cov22, n_pred, &info);
     
     if (info != 0) {
         
@@ -177,10 +202,11 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
         cudaMemset(colptr, 0, col * sizeof(double));
     }
     
-    std::cout << "Calc  predL: " << t.toc() << "\n";
+    p.step3(timer.elapsed().wall / 1000000000.0L);
     
     
-    t.tic();
+    timer.stop();
+    timer.start();
 
     double *d_rand, *d_pred;
     cudaMalloc((void**) &d_rand, n_pred*total_alleles*sizeof(double));  checkCudaError("rand (Malloc)");
@@ -213,12 +239,12 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
     cudaFree(d_rand);  checkCudaError("rand (Free)");
     cudaFree(d_pred);  checkCudaError("pred (Free)");
     
-    std::cout << "Calc  pred: " << t.toc() << "\n";
-    
+    p.step4(timer.elapsed().wall / 1000000000.0L);
+
 #endif
     
-    t.tic();
-    
+    timer.stop();
+    timer.start();
     
     arma::mat ind_logprob = arma::zeros<arma::mat>(p.locate_indivs.size(), n_pred);
     for (int l=0, c=0; l<p.nLoci; c+=p.nAlleles[l], l++) {
@@ -259,15 +285,19 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
         }
         
     }
-    std::cout << "Calc  calcs: " << t.toc() << "\n";
+    
+    p.step5(timer.elapsed().wall / 1000000000.0L);
     
     
-    t.tic();
+    timer.stop();
+    timer.start();
+
     for(int i=0; i < p.locate_indivs.size(); i++) {
         arma::rowvec curvec = ind_logprob.row(i);
         if (opt.GZIPOUTPUT) curvec.save( *(p.cvfileGzStreams[i]), arma::raw_binary );
         else                curvec.save( *(p.cvfileStreams[i]),   arma::raw_binary );
     }
-    std::cout << "Calc  write: " << t.toc() << "\n";
+    
+    p.step6(timer.elapsed().wall / 1000000000.0L);
 
 }

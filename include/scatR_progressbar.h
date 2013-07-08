@@ -10,7 +10,7 @@
 #ifndef SCATR_PROGRESS_HPP
 #define SCATR_PROGRESS_HPP
 
-#include <boost/timer.hpp>
+#include <boost/timer/timer.hpp>
 #include <boost/utility.hpp>  // for noncopyable
 #include <iostream>           // for ostream, cout, etc
 #include <string>             // for string
@@ -32,7 +32,8 @@ private:
     unsigned long _expected_count, _count;
     unsigned int _width, _prefix_width;
     std::string _prefix;
-    boost::timer timer;
+    //boost::timer timer;
+    boost::timer::cpu_timer timer;
     
 public:
 
@@ -42,7 +43,8 @@ public:
         _expected_count = expected_count;
         if ( !_expected_count ) 
             _expected_count = 1;  
-        timer.restart();
+        timer.stop();
+        timer.start();
         
         display_tic();
         
@@ -90,7 +92,7 @@ public:
             m_os << c;
         }
         
-        double time = timer.elapsed();
+        double time = timer.elapsed().wall / 1000000000.0L;
         double remaining = time / perc;
         
         m_os << "| " << std::setw(3) << static_cast<unsigned int>(perc*100.0) << "%";

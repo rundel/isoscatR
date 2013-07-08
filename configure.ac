@@ -62,7 +62,7 @@ CPPFLAGS+=" ${BOOST_CPPFLAGS}"
 
 BOOST_IOSTREAMS
 
-LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz"
+LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz -lboost_timer"
 LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
 
 #################### Defaults     ####################
@@ -95,7 +95,7 @@ AC_CHECK_FILE(
 	[USE_MAGMA=no]
 )
 
-CUDA_LIBS="-lcuda -lcublas"
+CUDA_LIBS="-lcudart -lcublas"
 AC_MSG_CHECKING([whether this is a 64-bit version of CUDA])
 AC_CHECK_FILE(
 	[${CUDA_HOME}/lib64/libcublas.so], 
@@ -121,17 +121,17 @@ AC_CHECK_FILE(
 	[USE_MAGMA=no]
 )
 
-AC_MSG_CHECKING([for MAGMA shared libraries])
+AC_MSG_CHECKING([for MAGMA static library])
 AC_CHECK_FILE(
-	[${MAGMA_LIB}/libmagma.so],
+	[${MAGMA_LIB}/libmagma.a],
 	[],
 	[USE_MAGMA=no]
 )
 
 if test "${USE_MAGMA}" == "yes"; then
-	CPPFLAGS+=" ${CUDA_CPPFLAGS} -DUSEMAGMA -I${MAGMA_INC}"
+	CPPFLAGS+=" ${CUDA_CPPFLAGS} -DHAVE_CUBLAS -DUSEMAGMA -I${MAGMA_INC}"
 	LDFLAGS+=" ${CUDA_LDFLAGS} -L${MAGMA_LIB}"
-	LIBS+=" ${CUDA_LIBS} -lmagmablas -lmagma"
+	LIBS+=" ${CUDA_LIBS} -lmagma"
 	CU_FILES=scatR_cov_gpu.cu
 	NCFLAGS="-arch=sm_20 -O2 -Xcompiler \"-O2 -fPIC\""
 	

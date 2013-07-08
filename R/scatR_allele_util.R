@@ -1,15 +1,15 @@
 find_ind_file = function(root, ind, chain) {
     
-    d = dir(root, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE)
+    d = dir(root, pattern = paste("Ind",ind,"_",chain,sep=""), full.names=TRUE)
     if (length(d) != 0)
         return( d )
     
     d = dir(root, "Loc",full.names=TRUE)
     if (length(d) != 0)
-        return( dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""),full.names=TRUE) )
+        return( dir(d, pattern = paste("Ind",ind,"_",chain,sep=""),full.names=TRUE) )
     
     d = dir(root,paste("Ind",ind,sep=""),full.names=TRUE)
-    return( dir(d, pattern = paste("CV_Ind",ind,"_",chain,sep=""), full.names=TRUE) )
+    return( dir(d, pattern = paste("Ind",ind,"_",chain,sep=""), full.names=TRUE) )
 }
 
 calc_step = function(locs) {
@@ -155,7 +155,7 @@ calc_model_allele_freq = function(result_dir, nChains, nIter, loc_file, sep="\t"
     stopifnot(file.exists(result_dir))
     
     locs = read_location_file(loc_file,sep)[,4:3]
-    al_files = dir(result_dir, pattern = "Al[0-9]+-[0-9]+_[0-9]+\\.gz")
+    al_files = dir(result_dir, pattern = "Al[0-9]+-[0-9]+_[0-9]+\\.scatR")
     stopifnot(length(al_files)!=0)
     
     res = list()
@@ -179,14 +179,14 @@ calc_model_allele_freq = function(result_dir, nChains, nIter, loc_file, sep="\t"
         
         l=1
         repeat {
-            sub = grepl(paste("Al",l,"-[0-9]+_",c,"\\.gz",sep=""),al_files)
+            sub = grepl(paste("Al",l,"-[0-9]+_",c,"\\.scatR",sep=""),al_files)
             
             if (sum(sub)==0)
                 break
             
             res[[c]][[l]] = array(NA,c(sum(sub),nrow(locs),length(probs)))
             for(a in 1:sum(sub)) {
-                file = file.path(result_dir, paste("Al",l,"-",a,"_",c,".gz",sep=""))
+                file = file.path(result_dir, paste("Al",l,"-",a,"_",c,".scatR",sep=""))
                 print(file)
                 stopifnot(file.exists(file))
                 

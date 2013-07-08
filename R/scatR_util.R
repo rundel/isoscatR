@@ -24,15 +24,22 @@ raster_fast_aggregate = function(rast, fact=2) {
     return(out)
 }
 
-create_isotope_data = function(allele_file, location_file, isotope_file) {
-    iso = read.table(isotope_file,sep=",")#[,-2]
-
+create_allele_data = function(allele_file, location_file)
+{
     all = read.table(allele_file)[,1:2]
     all = all[seq(1,nrow(all),2),]
     
     loc = read.table(location_file)
 
-    return( merge(merge(all,loc,by.x=2,by.y=2)[,-1],iso,by.x=1,by.y=1) )
+    return( merge(all,loc,by.x=2,by.y=2)[,-1] )
+}
+
+create_allelel_isotope_data = function(allele_file, location_file, isotope_file) {
+    iso = read.table(isotope_file,sep=",")#[,-2]
+
+    all = create_allele_data(allele_file, location_file)
+
+    return( merge(all,iso,by.x=1,by.y=1) )
 }
 
 

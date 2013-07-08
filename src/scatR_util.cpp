@@ -15,9 +15,9 @@ void open_cvfiles(GlobalParams &p, GlobalOptions &opt) {
 
     for(int l=0; l<p.locate_indivs.size(); l++) {
         
-        std::string file = opt.TMPDIR + "/CV_Ind" 
+        std::string file = opt.TMPDIR + "/Ind" 
                       + boost::lexical_cast<std::string>(p.locate_indivs[l]) + "_"
-                      + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+                      + boost::lexical_cast<std::string>(p.chain_num) + ".scatR";
         
         p.cvfileStreams[l] = new std::ofstream(file.c_str(), std::ios_base::binary);
         
@@ -50,7 +50,7 @@ void open_allelefiles(GlobalParams &p, GlobalOptions &opt) {
             std::string file = opt.TMPDIR + "/Al" 
                                 + boost::lexical_cast<std::string>(l+1) + "-"
                                 + boost::lexical_cast<std::string>(j+1) + "_"
-                                + boost::lexical_cast<std::string>(p.chain_num) + ".gz";
+                                + boost::lexical_cast<std::string>(p.chain_num) + ".scatR";
         
             p.alfileStreams[l][j] = new std::ofstream(file.c_str(), std::ios_base::binary);
         
@@ -116,6 +116,25 @@ arma::mat calc_f(const arma::mat &theta) {
     arma::mat sumExpTheta = arma::sum(expTheta,1) * arma::ones<arma::rowvec>(nAlleles);
     
     return expTheta / sumExpTheta;
+}
+
+void outputPerformance(GlobalParams &p, GlobalOptions &opt) {
+
+    std::cout << std::endl;
+    std::cout << "Performance (CPU";
+#ifdef USEMAGMA
+    std::cout << "+GPU";
+#endif
+    std::cout << ") :" << std::endl;
+    std::cout << "=============================================" << std::endl;
+    std::cout << "Step 1: " << p.step1.mean() << " (" << p.step1.stddev() << ")" << std::endl;
+    std::cout << "Step 2: " << p.step2.mean() << " (" << p.step2.stddev() << ")" << std::endl;
+    std::cout << "Step 3: " << p.step3.mean() << " (" << p.step3.stddev() << ")" << std::endl;
+    std::cout << "Step 4: " << p.step4.mean() << " (" << p.step4.stddev() << ")" << std::endl;
+    std::cout << "Step 5: " << p.step5.mean() << " (" << p.step5.stddev() << ")" << std::endl;
+    std::cout << "Step 6: " << p.step6.mean() << " (" << p.step6.stddev() << ")" << std::endl;
+    std::cout << std::endl << std::endl;
+
 }
 
 

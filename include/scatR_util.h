@@ -20,6 +20,7 @@ arma::mat calc_stretch_mat(double ratio);
 
 void outputAccepts(GlobalParams &p, GlobalOptions &opt);
 void outputTuning(GlobalParams &p, GlobalOptions &opt);
+void outputPerformance(GlobalParams &p, GlobalOptions &opt);
 
 double accept_ratio(unsigned int accept, unsigned int attempt);
 
