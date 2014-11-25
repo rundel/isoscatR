@@ -59,11 +59,13 @@ BOOST_REQUIRE
 
 CPPFLAGS+=" ${BOOST_CPPFLAGS}"
 
+#BOOST_TIMER
+#BOOST_IOSTREAMS
 
-BOOST_IOSTREAMS
+LDFLAGS+=" -lz -lboost_timer -lboost_iostreams"
 
-LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz -lboost_timer"
-LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
+#LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz -lboost_timer -lboost_iostreams"
+#LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
 
 #################### Defaults     ####################
 
