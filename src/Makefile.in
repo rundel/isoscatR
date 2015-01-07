@@ -28,7 +28,7 @@ $(BIN): $(CU_OBJS) $(CPP_OBJS)
 %.o: %.cu
 		$(NVCC) $(NCFLAGS) -c $< -o $@
 
-all: $(BIN) 
+all: $(BIN)
 
 clean:
 		rm -f *.o
