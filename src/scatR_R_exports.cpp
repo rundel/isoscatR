@@ -33,7 +33,7 @@ RcppExport SEXP read_allele_file(SEXP Rfile) {
         return(Rcpp::wrap(x));
 
     } else {
-        std::cout << "Unable to open allele file (" << file_name <<")" << std::endl;
+        Rcpp::Rcout << "Unable to open allele file (" << file_name <<")" << std::endl;
         return(R_NilValue);
     }
 }

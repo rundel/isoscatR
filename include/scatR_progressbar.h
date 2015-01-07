@@ -19,7 +19,7 @@ class progress_display : private boost::noncopyable
 {
 public:
     explicit progress_display( unsigned long expected_count,
-                               std::ostream & os = std::cout,
+                               std::ostream & os = Rcpp::Rcout,
                                std::string prefix = "",
                                unsigned int prefix_width = 8,
                                unsigned int width = 50)

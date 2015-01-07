@@ -86,7 +86,7 @@ Rcpp::List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, b
 
     std::string prefix = tune ? "Tuning" : (burnin ? "Burnin" : "Sampling");
 
-    progress_display progress_bar(Niter, std::cout, prefix);
+    progress_display progress_bar(Niter, Rcpp::Rcout, prefix);
 
     if(!burnin) {
 
@@ -227,30 +227,30 @@ Rcpp::List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, b
         //arma::colvec pV = trans(var(deviance,0,0)/2);
         //arma::colvec pD = D_hat - D_theta_hat;
         //
-        //std::cout << "D_hat by region: ";
-        //std::cout << trans(D_hat);
-        //std::cout << "D_theta_hat by region: ";
-        //std::cout << trans(D_theta_hat);
+        //Rcpp::Rcout << "D_hat by region: ";
+        //Rcpp::Rcout << trans(D_hat);
+        //Rcpp::Rcout << "D_theta_hat by region: ";
+        //Rcpp::Rcout << trans(D_theta_hat);
 
         //if (opt.VERBOSE) {
-        //    std::cout << "Deviance Results:" << endl;
-        //    std::cout << "=============================================" << endl;
+        //    Rcpp::Rcout << "Deviance Results:" << endl;
+        //    Rcpp::Rcout << "=============================================" << endl;
         //
-        //    std::cout << "D hat: " << setprecision(6) << setw(8) << arma::accu(D_hat) << endl;
-        //    std::cout << "pD: " << setprecision(6) << setw(8) << arma::accu(pD) << endl;
-        //    std::cout << "pV: " << setprecision(6) << setw(8) << arma::accu(pV) << endl;
+        //    Rcpp::Rcout << "D hat: " << setprecision(6) << setw(8) << arma::accu(D_hat) << endl;
+        //    Rcpp::Rcout << "pD: " << setprecision(6) << setw(8) << arma::accu(pD) << endl;
+        //    Rcpp::Rcout << "pV: " << setprecision(6) << setw(8) << arma::accu(pV) << endl;
         //
-        //    std::cout << "DIC total (pD): " << setprecision(6) << setw(8) << arma::accu(D_hat+pD) << endl;
-        //    std::cout << "DIC by region:";
+        //    Rcpp::Rcout << "DIC total (pD): " << setprecision(6) << setw(8) << arma::accu(D_hat+pD) << endl;
+        //    Rcpp::Rcout << "DIC by region:";
         //    for(int r=0; r<p.nRegions; r++)
-        //        std::cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pD(r)+0.5);
-        //    std::cout << endl;
+        //        Rcpp::Rcout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pD(r)+0.5);
+        //    Rcpp::Rcout << endl;
         //
-        //    std::cout << "DIC total (pV): " << setprecision(6) << setw(8) << arma::accu(D_hat+pV) << endl;
-        //    std::cout << "DIC by region:";
+        //    Rcpp::Rcout << "DIC total (pV): " << setprecision(6) << setw(8) << arma::accu(D_hat+pV) << endl;
+        //    Rcpp::Rcout << "DIC by region:";
         //    for(int r=0; r<p.nRegions; r++)
-        //        std::cout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pV(r)+0.5);
-        //    std::cout << endl << endl;
+        //        Rcpp::Rcout << " " << setprecision(3) << setw(5) << floor(D_hat(r)+pV(r)+0.5);
+        //    Rcpp::Rcout << endl << endl;
         //}
 
     }
@@ -260,11 +260,11 @@ Rcpp::List MCMCLoop(GlobalParams &p, GlobalOptions &opt, int Niter, int Nthin, b
 
 void MCMCStep( GlobalParams &p, GlobalOptions &opt, bool burnin) {
 
-    update_beta(p, opt);    //std::cout << "beta" << endl;
-    update_eta(p,opt);      //std::cout << "eta" << endl;
-    update_xi(p,opt);       //std::cout << "xi" << endl;
-    update_alpha(p, opt);   //std::cout << "alpha" << endl;
-    update_theta(p, opt);       //std::cout << "X" << endl;
+    update_beta(p, opt);    //Rcpp::Rcout << "beta" << endl;
+    update_eta(p,opt);      //Rcpp::Rcout << "eta" << endl;
+    update_xi(p,opt);       //Rcpp::Rcout << "xi" << endl;
+    update_alpha(p, opt);   //Rcpp::Rcout << "alpha" << endl;
+    update_theta(p, opt);       //Rcpp::Rcout << "X" << endl;
 
     //update_anisotropy(p,opt);
 }

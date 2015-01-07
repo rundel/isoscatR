@@ -120,133 +120,133 @@ arma::mat calc_f(const arma::mat &theta) {
 
 void outputPerformance(GlobalParams &p, GlobalOptions &opt) {
 
-    std::cout << std::endl;
-    std::cout << "Performance (CPU";
+    Rcpp::Rcout << std::endl;
+    Rcpp::Rcout << "Performance (CPU";
 #ifdef USEMAGMA
-    std::cout << "+GPU";
+    Rcpp::Rcout << "+GPU";
 #endif
-    std::cout << ") :" << std::endl;
-    std::cout << "=============================================" << std::endl;
-    std::cout << "Step 1: " << p.step1.mean() << " (" << p.step1.stddev() << ")" << std::endl;
-    std::cout << "Step 2: " << p.step2.mean() << " (" << p.step2.stddev() << ")" << std::endl;
-    std::cout << "Step 3: " << p.step3.mean() << " (" << p.step3.stddev() << ")" << std::endl;
-    std::cout << "Step 4: " << p.step4.mean() << " (" << p.step4.stddev() << ")" << std::endl;
-    std::cout << "Step 5: " << p.step5.mean() << " (" << p.step5.stddev() << ")" << std::endl;
-    std::cout << "Step 6: " << p.step6.mean() << " (" << p.step6.stddev() << ")" << std::endl;
-    std::cout << std::endl << std::endl;
+    Rcpp::Rcout << ") :" << std::endl;
+    Rcpp::Rcout << "=============================================" << std::endl;
+    Rcpp::Rcout << "Step 1: " << p.step1.mean() << " (" << p.step1.stddev() << ")" << std::endl;
+    Rcpp::Rcout << "Step 2: " << p.step2.mean() << " (" << p.step2.stddev() << ")" << std::endl;
+    Rcpp::Rcout << "Step 3: " << p.step3.mean() << " (" << p.step3.stddev() << ")" << std::endl;
+    Rcpp::Rcout << "Step 4: " << p.step4.mean() << " (" << p.step4.stddev() << ")" << std::endl;
+    Rcpp::Rcout << "Step 5: " << p.step5.mean() << " (" << p.step5.stddev() << ")" << std::endl;
+    Rcpp::Rcout << "Step 6: " << p.step6.mean() << " (" << p.step6.stddev() << ")" << std::endl;
+    Rcpp::Rcout << std::endl << std::endl;
 
 }
 
 
 void outputAccepts(GlobalParams &p, GlobalOptions &opt) {
 
-    std::cout << std::endl;
-    std::cout << "Acceptance Rates:" << std::endl;
-    std::cout << "=============================================" << std::endl;
+    Rcpp::Rcout << std::endl;
+    Rcpp::Rcout << "Acceptance Rates:" << std::endl;
+    Rcpp::Rcout << "=============================================" << std::endl;
 
 
-    std::cout << "alpha  : ";
+    Rcpp::Rcout << "alpha  : ";
     for (int l=0; l<p.alpha.size(); l++)
-        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.alphaAccept[l], p.alphaAttempt[l]) << " ";
-    std::cout << std::endl;
+        Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.alphaAccept[l], p.alphaAttempt[l]) << " ";
+    Rcpp::Rcout << std::endl;
 
     if (!opt.FIXANGLE) {
-        std::cout << "angle  : ";
-        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.angleAccept, p.angleAttempt) << " ";
-        std::cout << std::endl;
+        Rcpp::Rcout << "angle  : ";
+        Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.angleAccept, p.angleAttempt) << " ";
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXRATIO) {
-        std::cout << "ratio  : ";
-        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.ratioAccept, p.ratioAttempt) << " ";
-        std::cout << std::endl;
+        Rcpp::Rcout << "ratio  : ";
+        Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.ratioAccept, p.ratioAttempt) << " ";
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXXI) {
-        std::cout << "xi     : ";
+        Rcpp::Rcout << "xi     : ";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.xiAccept[l],p.xiAttempt[l]) << " ";
-        std::cout << std::endl;
+            Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.xiAccept[l],p.xiAttempt[l]) << " ";
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXBETA) {
-        std::cout << "beta   : ";
+        Rcpp::Rcout << "beta   : ";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.betaAccept[l], p.betaAttempt[l]) << " ";
-        std::cout << std::endl;
+            Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.betaAccept[l], p.betaAttempt[l]) << " ";
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXETA) {
-        std::cout << "eta    : ";
+        Rcpp::Rcout << "eta    : ";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.etaAccept[l], p.etaAttempt[l]) << " ";
-        std::cout << std::endl;
+            Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.etaAccept[l], p.etaAttempt[l]) << " ";
+        Rcpp::Rcout << std::endl;
     }
 
-    std::cout << "theta  : ";
+    Rcpp::Rcout << "theta  : ";
     for (int l=0; l<p.nLoci; l++) {
-        std::cout << std::setprecision(3) << std::setw(5) << accept_ratio(p.thetaAccept[l], p.thetaAttempt[l]) << " ";
+        Rcpp::Rcout << std::setprecision(3) << std::setw(5) << accept_ratio(p.thetaAccept[l], p.thetaAttempt[l]) << " ";
     }
-    std::cout << std::endl << std::endl;
+    Rcpp::Rcout << std::endl << std::endl;
 
 }
 
 
 void outputTuning(GlobalParams &p, GlobalOptions &opt) {
 
-    std::cout << std::endl;
-    std::cout << "Tuning Results:" << std::endl;
-    std::cout << "=============================================" << std::endl;
+    Rcpp::Rcout << std::endl;
+    Rcpp::Rcout << "Tuning Results:" << std::endl;
+    Rcpp::Rcout << "=============================================" << std::endl;
 
 
     for (int l=0; l<opt.ALPHASD.size(); l++) {
-        std::cout << "alpha" << l << " : ";
-        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.ALPHASD(l) << "]";
-        std::cout << " " << std::setprecision(3) << std::setw(5) << p.alpha_sd(l) << std::endl;
+        Rcpp::Rcout << "alpha" << l << " : ";
+        Rcpp::Rcout << "[" << std::setprecision(3) << std::setw(5) << opt.ALPHASD(l) << "]";
+        Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.alpha_sd(l) << std::endl;
     }
 
     if (!opt.FIXANGLE) {
-        std::cout << "angle  : ";
-        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.ANGLESD << "]";
-        std::cout << " " << std::setprecision(3) << std::setw(5) << p.angle_sd << std::endl;
+        Rcpp::Rcout << "angle  : ";
+        Rcpp::Rcout << "[" << std::setprecision(3) << std::setw(5) << opt.ANGLESD << "]";
+        Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.angle_sd << std::endl;
     }
 
     if (!opt.FIXRATIO) {
-        std::cout << "ratio  : ";
-        std::cout << "[" << std::setprecision(3) << std::setw(5) << opt.RATIOSD << "]";
-        std::cout << " " << std::setprecision(3) << std::setw(5) << p.ratio_sd << std::endl;
+        Rcpp::Rcout << "ratio  : ";
+        Rcpp::Rcout << "[" << std::setprecision(3) << std::setw(5) << opt.RATIOSD << "]";
+        Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.ratio_sd << std::endl;
     }
 
     if (!opt.FIXXI) {
-        std::cout << "xi     : [" << std::setprecision(3) << std::setw(5) << opt.XISD << "] ";
-        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.xi_sd) << ")";
+        Rcpp::Rcout << "xi     : [" << std::setprecision(3) << std::setw(5) << opt.XISD << "] ";
+        Rcpp::Rcout << "(" << std::setprecision(3) << std::setw(5) << mean(p.xi_sd) << ")";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << " " << std::setprecision(3) << std::setw(5) << p.xi_sd(l);
-        std::cout << std::endl;
+            Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.xi_sd(l);
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXBETA) {
-        std::cout << "beta   : [" << std::setprecision(3) << std::setw(5) << opt.BETASD << "] ";
-        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.beta_sd) << ")";
+        Rcpp::Rcout << "beta   : [" << std::setprecision(3) << std::setw(5) << opt.BETASD << "] ";
+        Rcpp::Rcout << "(" << std::setprecision(3) << std::setw(5) << mean(p.beta_sd) << ")";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << " " << std::setprecision(3) << std::setw(5) << p.beta_sd(l);
-        std::cout << std::endl;
+            Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.beta_sd(l);
+        Rcpp::Rcout << std::endl;
     }
 
     if (!opt.FIXETA) {
-        std::cout << "eta    : [" << std::setprecision(3) << std::setw(5) << opt.ETASD << "] ";
-        std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.eta_sd) << ")";
+        Rcpp::Rcout << "eta    : [" << std::setprecision(3) << std::setw(5) << opt.ETASD << "] ";
+        Rcpp::Rcout << "(" << std::setprecision(3) << std::setw(5) << mean(p.eta_sd) << ")";
         for (int l=0; l<p.nLoci; l++)
-            std::cout << " " << std::setprecision(3) << std::setw(5) << p.eta_sd(l);
-        std::cout << std::endl;
+            Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.eta_sd(l);
+        Rcpp::Rcout << std::endl;
     }
 
-    std::cout << "theta  : [" << std::setprecision(3) << std::setw(5) << opt.THETASD << "] ";
-    std::cout << "(" << std::setprecision(3) << std::setw(5) << mean(p.theta_sd) << ")";
+    Rcpp::Rcout << "theta  : [" << std::setprecision(3) << std::setw(5) << opt.THETASD << "] ";
+    Rcpp::Rcout << "(" << std::setprecision(3) << std::setw(5) << mean(p.theta_sd) << ")";
     for(int l=0; l<p.nLoci; l++) {
-        std::cout << " " << std::setprecision(3) << std::setw(5) << p.theta_sd[l];
+        Rcpp::Rcout << " " << std::setprecision(3) << std::setw(5) << p.theta_sd[l];
     }
-    std::cout << std::endl << std::endl;
+    Rcpp::Rcout << std::endl << std::endl;
 }
 
 

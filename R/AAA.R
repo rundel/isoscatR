@@ -1,6 +1,7 @@
-require(coda)
-require(raster)
-require(maptools)
+library(coda)
+library(raster)
+library(maptools)
+library(sp)
 
 #require(doMC)
 #registerDoMC()

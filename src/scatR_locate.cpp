@@ -60,10 +60,10 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     pred_locs = pred_locs(arma::span(0,i-1), arma::span::all);
 
     //if (opt.VERBOSE) {
-        std::cout << "Estimated # grid cells: " << nx_step*ny_step << std::endl;
-        std::cout << "Actual # grid cells: " << i-1 << std::endl;
-        std::cout << "Using step=" << step << std::endl;
-        std::cout << std::endl;
+        Rcpp::Rcout << "Estimated # grid cells: " << nx_step*ny_step << std::endl;
+        Rcpp::Rcout << "Actual # grid cells: " << i-1 << std::endl;
+        Rcpp::Rcout << "Using step=" << step << std::endl;
+        Rcpp::Rcout << std::endl;
     //}
 
     arma::mat rand_pred_locs = arma::shuffle(pred_locs,0);
@@ -186,10 +186,10 @@ void update_location(GlobalParams &p, GlobalOptions &opt) {
 
     if (info != 0) {
 
-        if (info < 0) std::cout << "Error: illegal argument " << -1 * info << " in magChol\n";
-        else          std::cout << "Error: leading minor of order " << info << " is not positive definite\n";
+        if (info < 0) Rcpp::Rcout << "Error: illegal argument " << -1 * info << " in magChol\n";
+        else          Rcpp::Rcout << "Error: leading minor of order " << info << " is not positive definite\n";
 
-        std::cout << "alpha[0]: " << p.alpha[0] << "\n"
+        Rcpp::Rcout << "alpha[0]: " << p.alpha[0] << "\n"
                   << "alpha[1]: " << p.alpha[1] << "\n"
                   << "alpha[2]: " << p.alpha[2] << "\n"
                   << "alpha[3]: " << p.alpha[3] << "\n";

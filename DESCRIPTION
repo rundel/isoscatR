@@ -8,6 +8,6 @@ Maintainer: Colin Rundel <rundel@gmail.com>
 Description: Package for fitting SCAT models for genetic samples
 License: 
 LazyLoad: yes
-Depends: Rcpp (>= 0.9.14), RcppArmadillo (>= 0.3.4), coda, rgeos
+Depends: Rcpp (>= 0.9.14), RcppArmadillo (>= 0.3.4), coda, rgeos, sp
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: GNU make, boost

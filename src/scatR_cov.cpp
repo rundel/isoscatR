@@ -21,7 +21,7 @@ arma::mat calc_L(const arma::mat& Sigma)
     }
     
     if (L.is_empty()) {
-        std::cout << "Cholesky decomposition failed! ";
+        Rcpp::Rcout << "Cholesky decomposition failed! ";
     }
 
     return L;

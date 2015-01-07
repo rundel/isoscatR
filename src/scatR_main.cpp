@@ -52,7 +52,7 @@ SEXP mcmc_main(SEXP rChain,
 
     init_params(p,opt);
 
-    std::cout << "Chain " << p.chain_num << ":\n";
+    Rcpp::Rcout << "Chain " << p.chain_num << ":\n";
     MCMCLoop(p, opt, Nburn, Nthin, true, true);
     if (opt.VERBOSE) {
         outputTuning(p, opt);
@@ -83,7 +83,7 @@ SEXP mcmc_main(SEXP rChain,
     Rcpp::List res = MCMCLoop(p, opt, Niter, Nthin, false, false);
 
     if (opt.VERBOSE) {
-        std::cout << "Chain " << p.chain_num << ":" << std::endl;
+        Rcpp::Rcout << "Chain " << p.chain_num << ":" << std::endl;
         outputAccepts(p, opt);
 
         outputPerformance(p, opt);

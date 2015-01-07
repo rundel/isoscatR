@@ -63,7 +63,7 @@ void checkCudaError(const char *msg)
 {
     cudaError_t err = cudaGetLastError();
     if(err != cudaSuccess) {
-        std::cout << "Error: CUDA " << msg << " : " << cudaGetErrorString(err) << "\n";
+        Rcpp::Rcout << "Error: CUDA " << msg << " : " << cudaGetErrorString(err) << "\n";
         throw( std::exception() );
     }
 }
@@ -102,7 +102,7 @@ void checkCublasError(cublasStatus_t err, std::string msg)
     }
 
     if(err != CUBLAS_STATUS_SUCCESS) {
-        std::cout << "Error: cuBLAS - " << msg << " - " << err_str;
+        Rcpp::Rcout << "Error: cuBLAS - " << msg << " - " << err_str;
         throw( std::exception() );
     }
 }
