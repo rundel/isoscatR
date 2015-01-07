@@ -59,12 +59,12 @@ void init_locate(GlobalParams &p, GlobalOptions &opt) {
     }
     pred_locs = pred_locs(arma::span(0,i-1), arma::span::all);
 
-    //if (opt.VERBOSE) {
+    if (opt.VERBOSE) {
         Rcpp::Rcout << "Estimated # grid cells: " << nx_step*ny_step << std::endl;
         Rcpp::Rcout << "Actual # grid cells: " << i-1 << std::endl;
         Rcpp::Rcout << "Using step=" << step << std::endl;
         Rcpp::Rcout << std::endl;
-    //}
+    }
 
     arma::mat rand_pred_locs = arma::shuffle(pred_locs,0);
     arma::mat all_locs = arma::join_cols(p.locs, rand_pred_locs);
