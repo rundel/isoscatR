@@ -1,6 +1,8 @@
 library(raster)
 library(scatR)
 
+source("isotope_util.R")
+
 load(r,file="sp_lm_pred.Rdata")
 
 results_dir = "Results/"
