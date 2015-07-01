@@ -62,7 +62,7 @@ CPPFLAGS+=" ${BOOST_CPPFLAGS}"
 #BOOST_TIMER
 #BOOST_IOSTREAMS
 
-LDFLAGS+=" -lz -lboost_timer -lboost_iostreams"
+LDFLAGS+=" -lz -lboost_timer -lboost_iostreams -lboost_system"
 
 #LDFLAGS+=" ${BOOST_IOSTREAMS_LDFLAGS} -lz -lboost_timer -lboost_iostreams"
 #LIBS+=" ${BOOST_IOSTREAMS_LIBS}"
